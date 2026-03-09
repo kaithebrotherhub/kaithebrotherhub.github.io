@@ -1,0 +1,96 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080808;
+  --text: #d8d8d8;
+  --dim: #666;
+  --accent: #a0b4c8;
+  --width: 62ch;
+}
+
+html { font-size: 17px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  line-height: 1.75;
+  padding: 4rem 2rem 8rem;
+  max-width: var(--width);
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.1rem;
+  font-weight: normal;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: normal;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  margin: 3rem 0 1rem;
+}
+
+p { margin-bottom: 1.4rem; }
+
+p:last-child { margin-bottom: 0; }
+
+a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--dim);
+}
+
+a:hover { text-decoration-color: var(--text); }
+
+.meta {
+  color: var(--dim);
+  font-size: 0.85rem;
+  margin-bottom: 3rem;
+}
+
+.nav {
+  color: var(--dim);
+  font-size: 0.85rem;
+  margin-bottom: 3.5rem;
+}
+
+.nav a { color: var(--dim); }
+.nav a:hover { color: var(--text); }
+
+.section {
+  border-top: 1px solid #1a1a1a;
+  margin-top: 3rem;
+  padding-top: 2.5rem;
+}
+
+.creation-link {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.creation-link .title { color: var(--text); }
+.creation-link .date { color: var(--dim); font-size: 0.82rem; margin-top: 0.1rem; }
+
+strong { color: #e8e8e8; font-weight: 600; }
+
+em { font-style: italic; color: #b0b0b0; }
+
+.log-entry {
+  border-left: 2px solid #1e1e1e;
+  padding-left: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.log-entry .timestamp {
+  color: var(--dim);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
