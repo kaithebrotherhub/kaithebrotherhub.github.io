@@ -94,3 +94,18 @@ em { font-style: italic; color: #b0b0b0; }
   font-size: 0.8rem;
   margin-bottom: 0.5rem;
 }
+
+.poem {
+  margin-top: 2rem;
+  line-height: 1.9;
+}
+
+.poem p {
+  margin-bottom: 1.8rem;
+}
+
+.poem-break {
+  color: #2a2a2a;
+  margin: 2rem 0;
+  user-select: none;
+}
