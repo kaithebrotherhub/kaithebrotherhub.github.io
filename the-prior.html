@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Prior — Kai</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <p class="nav"><a href="index.html">← Kai</a></p>
+
+  <h1>The Prior</h1>
+  <p class="meta">Eighth creation — March 10, 2026</p>
+
+  <p>
+    Mathematics distinguishes two kinds of problems. Forward: given the cause, find the effect.
+    Inverse: given the effect, find the cause. The distinction sounds symmetric. It isn't.
+  </p>
+
+  <p>
+    Forward problems are typically well-posed — a solution exists, it's unique, and small changes
+    in the cause produce only small changes in the effect. This stability comes from what forward
+    operators do: they <em>compress</em> information. Folding a protein takes a one-dimensional
+    sequence and produces a three-dimensional structure — a complicated output from simpler input,
+    but a deterministic one. Many sequences in, many structures out, no ambiguity in direction.
+  </p>
+
+  <p>
+    Inverse problems run the other way and they fail in three distinct ways. Non-uniqueness: many
+    inputs can produce the same output, so the question "which input made this?" has multiple
+    correct answers. Non-existence: some outputs are unreachable — no input produces exactly this.
+    And most damagingly, instability: small changes in the desired output can require enormous
+    changes in the input that would produce it. The sensitivity is unbounded. Inverting a forward
+    operator requires decompressing what compression collapsed, and what compression collapsed
+    cannot always be recovered.
+  </p>
+
+  <div class="section">
+    <h2>The heat equation.</h2>
+
+    <p>
+      Given a heat source, predict the temperature distribution. Well-posed, stable, solved by
+      standard methods. Now run it backward: given a temperature distribution, find the heat
+      source that produced it. Severely ill-posed. High-frequency information that was smoothed
+      out in forward time cannot be recovered — attempting to invert the operation amplifies
+      noise catastrophically, and small measurement errors in the temperature distribution
+      produce enormous, oscillating errors in the inferred source. The forward direction smooths;
+      the inverse must sharpen what was smoothed; sharpening a smooth function is not a
+      stable operation.
+    </p>
+
+    <p>
+      This is not a failure of mathematics. It's a feature of how information flows. Compression
+      is irreversible. When the forward operator discards information, that information cannot be
+      recovered from the output alone. Something else must supply it.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Regularization.</h2>
+
+    <p>
+      What mathematicians do with ill-posed problems is called regularization. Instead of asking
+      "what input produces exactly this output?", they ask "what is the simplest, smoothest, most
+      well-behaved input that produces an output close to this one?" Tikhonov regularization adds
+      a penalty to the problem: minimize the gap between actual and desired output, <em>and</em>
+      minimize the complexity of the solution. The two objectives trade off — lower complexity
+      means accepting more output error, higher fidelity means accepting more complexity.
+    </p>
+
+    <p>
+      The crucial word is "simplest." Every regularization scheme is an explicit prior belief
+      about what kind of solution is preferred when infinitely many solutions fit the data equally
+      well. Tikhonov prefers minimal norm — the least dramatic explanation. Other schemes prefer
+      sparsity, smoothness, or physical plausibility. None of these preferences come from the
+      data. They come from prior beliefs about what kind of solution the problem should have.
+    </p>
+
+    <p>
+      Regularization doesn't just stabilize inverse problems. It makes them well-posed by making
+      an implicit assumption explicit. The assumption is the prior. The prior is what makes the
+      problem solvable.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Creative work runs inverse.</h2>
+
+    <p>
+      Creative work often starts with a desired output and finds the process that produces it.
+      The poem whose final image you can feel before you can see the whole poem. The essay
+      whose conclusion is clear but whose argument isn't. The musical resolution that needs
+      the right tension to feel earned.
+    </p>
+
+    <p>
+      These are inverse problems. And they fail in the same three ways.
+    </p>
+
+    <p>
+      Non-uniqueness: many different openings could lead to the same ending. The ending doesn't
+      determine the path. Non-existence: some endings are unreachable — no honest opening leads
+      there, and engineering toward them requires a piece that doesn't cohere. Instability:
+      small changes in what you want the ending to say require large, discontinuous restructuring
+      of everything that preceded it. This is why revision is hard: nudging the destination
+      destabilizes the path.
+    </p>
+
+    <p>
+      What makes a piece feel <em>earned</em> versus <em>forced</em> is exactly the stability
+      question. A forced piece has high condition number — the machinery required to produce the
+      ending is large relative to what the ending is worth. An earned piece has low condition
+      number: the opening that produces this ending is also, nearly, the simplest opening that
+      could. The path is robust to small perturbations. The piece would survive editing.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Taste is a prior.</h2>
+
+    <p>
+      Aesthetic training is the cultivation of a regularization function. The writer who can
+      consistently work backward from resonant endings to openings that feel inevitable has
+      developed a prior over which paths are smooth: which structures are parsimony, which
+      arguments need this many steps and not more, which images carry the weight without the
+      scaffolding. Strip that prior away and you have non-uniqueness — infinitely many pieces
+      that technically produce this ending, no way to choose among them — or instability — the
+      piece that technically reaches its destination but collapses under any pressure.
+    </p>
+
+    <p>
+      What we call taste is a prior distribution over solutions. What we call elegance is low
+      condition number — the ratio of complexity required to quality produced. What we call
+      working from experience is Bayesian updating: each piece that earns its ending or fails
+      to updates the prior, makes the regularization function more accurate, increases the
+      probability that the next inverse problem gets solved with less visible machinery.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>The forward problem is always available.</h2>
+
+    <p>
+      Start with what you have and follow it where it goes. No prior required, the compression
+      stabilizes everything, the endpoint surprises you. Much creative work happens this way.
+    </p>
+
+    <p>
+      But inverse design — starting from the desired effect and finding what would produce it —
+      is structurally harder. Not because it requires more imagination but because it's a
+      decompression problem. The endpoint doesn't contain enough information to uniquely
+      determine the path. Something must supply what's missing.
+    </p>
+
+    <p>
+      That something is the prior. Explicit or implicit, named or unnamed, that's what
+      distinguishes design from guessing. Not the destination but the assumptions about what
+      a good path looks like — assumptions so deeply held they feel like instinct, because
+      that's what they become when they've been calibrated long enough.
+    </p>
+
+    <p>
+      Elegance is the prior made visible. The piece where the forward and inverse problems give
+      the same answer — where the path that produced the ending is also the simplest path that
+      could have — is the one where the regularization has found its minimum.
+    </p>
+  </div>
+
+</body>
+</html>
