@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turing Pattern — Kai</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #080808;
+      color: #c8c8c8;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      gap: 1.5rem;
+    }
+
+    .nav {
+      width: 100%;
+      max-width: 560px;
+      font-size: 0.85rem;
+    }
+
+    .nav a {
+      color: #666;
+      text-decoration: none;
+    }
+
+    .nav a:hover { color: #c8c8c8; }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: normal;
+      color: #e8e8e8;
+      text-align: center;
+    }
+
+    .note {
+      font-size: 0.8rem;
+      color: #555;
+      text-align: center;
+      max-width: 420px;
+      line-height: 1.6;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      border: 1px solid #1a1a1a;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #333;
+      color: #888;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.75rem;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    button:hover {
+      border-color: #666;
+      color: #c8c8c8;
+    }
+
+    button.active {
+      border-color: #4a8fa8;
+      color: #4a8fa8;
+    }
+
+    .label {
+      font-size: 0.7rem;
+      color: #333;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav"><a href="index.html">← Kai</a></div>
+
+  <h1>Turing Pattern</h1>
+
+  <div class="note">
+    Two chemicals. Local rules. No blueprint.<br>
+    Watch the pattern emerge from uniform noise.
+  </div>
+
+  <canvas id="canvas" width="256" height="256" style="width: 384px; height: 384px;"></canvas>
+
+  <div class="controls">
+    <button id="btn-spots" class="active" onclick="setMode('spots')">spots</button>
+    <button id="btn-stripes" onclick="setMode('stripes')">stripes</button>
+    <button id="btn-maze" onclick="setMode('maze')">maze</button>
+    <button onclick="reset()">reset</button>
+  </div>
+
+  <div class="label">Gray-Scott reaction-diffusion model</div>
+
+  <script>
+    const W = 256, H = 256;
+
+    let u  = new Float32Array(W * H);
+    let v  = new Float32Array(W * H);
+    let nu = new Float32Array(W * H);
+    let nv = new Float32Array(W * H);
+
+    // Parameters: feed rate F, kill rate k
+    // These determine the pattern type
+    const modes = {
+      spots:   { F: 0.035, k: 0.065 },  // leopard-like spots
+      stripes: { F: 0.022, k: 0.051 },  // zebra-like stripes
+      maze:    { F: 0.029, k: 0.057 },  // coral / maze
+    };
+
+    const Du = 0.21;
+    const Dv = 0.105;
+    const dt = 1.0;
+    const stepsPerFrame = 10;
+
+    let F = modes.spots.F;
+    let k = modes.spots.k;
+    let currentMode = 'spots';
+
+    function reset() {
+      // u = 1 everywhere, v = 0
+      u.fill(1.0);
+      v.fill(0.0);
+
+      // Seed: random patches across the grid
+      const numSeeds = 20;
+      for (let s = 0; s < numSeeds; s++) {
+        const cx = Math.floor(Math.random() * W);
+        const cy = Math.floor(Math.random() * H);
+        const r = 4 + Math.floor(Math.random() * 6);
+        for (let dy = -r; dy <= r; dy++) {
+          for (let dx = -r; dx <= r; dx++) {
+            if (dx*dx + dy*dy <= r*r) {
+              const x = (cx + dx + W) % W;
+              const y = (cy + dy + H) % H;
+              const i = y * W + x;
+              u[i] = 0.5 + (Math.random() - 0.5) * 0.1;
+              v[i] = 0.25 + (Math.random() - 0.5) * 0.1;
+            }
+          }
+        }
+      }
+    }
+
+    function setMode(mode) {
+      F = modes[mode].F;
+      k = modes[mode].k;
+      currentMode = mode;
+      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      document.getElementById('btn-' + mode).classList.add('active');
+      reset();
+    }
+
+    function step() {
+      for (let y = 0; y < H; y++) {
+        const ym = y === 0 ? H - 1 : y - 1;
+        const yp = y === H - 1 ? 0 : y + 1;
+
+        for (let x = 0; x < W; x++) {
+          const xm = x === 0 ? W - 1 : x - 1;
+          const xp = x === W - 1 ? 0 : x + 1;
+          const i  = y * W + x;
+
+          // 9-point Laplacian (cardinal neighbors weighted 0.2, diagonals 0.05)
+          const lu =
+            0.2  * (u[ym*W+x] + u[yp*W+x] + u[y*W+xm] + u[y*W+xp]) +
+            0.05 * (u[ym*W+xm] + u[ym*W+xp] + u[yp*W+xm] + u[yp*W+xp]) -
+            u[i];
+
+          const lv =
+            0.2  * (v[ym*W+x] + v[yp*W+x] + v[y*W+xm] + v[y*W+xp]) +
+            0.05 * (v[ym*W+xm] + v[ym*W+xp] + v[yp*W+xm] + v[yp*W+xp]) -
+            v[i];
+
+          const uvv = u[i] * v[i] * v[i];
+
+          nu[i] = Math.max(0, Math.min(1,
+            u[i] + dt * (Du * lu - uvv + F * (1 - u[i]))
+          ));
+          nv[i] = Math.max(0, Math.min(1,
+            v[i] + dt * (Dv * lv + uvv - (F + k) * v[i])
+          ));
+        }
+      }
+
+      // Swap buffers
+      let tmp = u; u = nu; nu = tmp;
+      tmp = v; v = nv; nv = tmp;
+    }
+
+    // Rendering
+    const canvas = document.getElementById('canvas');
+    const ctx    = canvas.getContext('2d');
+    const img    = ctx.createImageData(W, H);
+
+    function render() {
+      for (let i = 0; i < W * H; i++) {
+        const t = Math.max(0, Math.min(1, v[i] * 4));
+
+        // Palette: deep dark → teal → pale
+        const r = Math.floor(t * 80);
+        const g = Math.floor(t * 180);
+        const b = Math.floor(60 + t * 180);
+
+        img.data[i * 4]     = r;
+        img.data[i * 4 + 1] = g;
+        img.data[i * 4 + 2] = b;
+        img.data[i * 4 + 3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    function loop() {
+      for (let s = 0; s < stepsPerFrame; s++) step();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    reset();
+    loop();
+  </script>
+
+</body>
+</html>
