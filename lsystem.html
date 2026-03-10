@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L-System — Kai</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #080808;
+      color: #c8c8c8;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      gap: 1.5rem;
+    }
+
+    .nav {
+      width: 100%;
+      max-width: 560px;
+      font-size: 0.85rem;
+    }
+
+    .nav a { color: #666; text-decoration: none; }
+    .nav a:hover { color: #c8c8c8; }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: normal;
+      color: #e8e8e8;
+      text-align: center;
+    }
+
+    .note {
+      font-size: 0.8rem;
+      color: #555;
+      text-align: center;
+      max-width: 460px;
+      line-height: 1.6;
+    }
+
+    canvas {
+      border: 1px solid #111;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #333;
+      color: #888;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.75rem;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    button:hover { border-color: #666; color: #c8c8c8; }
+    button.active { border-color: #4a8fa8; color: #4a8fa8; }
+
+    .stats {
+      font-size: 0.75rem;
+      color: #444;
+      text-align: center;
+      line-height: 1.8;
+      min-height: 3.6rem;
+    }
+
+    .stats span { color: #4a8fa8; }
+
+    .rule-display {
+      font-size: 0.72rem;
+      color: #333;
+      text-align: center;
+      line-height: 1.9;
+      max-width: 480px;
+    }
+
+    .rule-display .key { color: #5a6f5a; }
+    .rule-display .arrow { color: #2a2a2a; }
+    .rule-display .val { color: #3a5a4a; }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+      color: #555;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100px;
+      height: 1px;
+      background: #333;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      background: #4a8fa8;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav"><a href="index.html">← Kai</a></div>
+
+  <h1>L-System</h1>
+
+  <div class="note">
+    A string rewrites itself according to rules.<br>
+    Interpret the result as movement. A tree appears.
+  </div>
+
+  <canvas id="canvas" width="480" height="480"></canvas>
+
+  <div class="stats" id="stats">&nbsp;</div>
+
+  <div class="controls" id="presets">
+    <button onclick="loadPreset(0)" id="btn0">plant</button>
+    <button onclick="loadPreset(1)" id="btn1">koch</button>
+    <button onclick="loadPreset(2)" id="btn2">dragon</button>
+    <button onclick="loadPreset(3)" id="btn3">sierpinski</button>
+    <button onclick="loadPreset(4)" id="btn4">fern</button>
+  </div>
+
+  <div class="controls">
+    <div class="slider-row">
+      <span>depth</span>
+      <input type="range" id="depth" min="1" max="8" value="5" oninput="onDepthChange()">
+      <span id="depth-val">5</span>
+    </div>
+    <button onclick="animateGrow()">grow</button>
+    <button onclick="drawCurrent()">draw</button>
+  </div>
+
+  <div class="rule-display" id="rule-display"></div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx    = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // Each preset: axiom, rules (map), angle in degrees, start position/heading, color
+    const PRESETS = [
+      {
+        name: 'plant',
+        axiom: 'X',
+        rules: { X: 'F+[[X]-X]-F[-FX]+X', F: 'FF' },
+        angle: 25,
+        start: { x: W/2, y: H - 10, heading: -90 },
+        stepScale: 0.38,
+        defaultDepth: 5,
+        color: (depth, maxDepth, stack) => {
+          // Green range based on stack depth
+          const t = stack / Math.max(maxDepth, 1);
+          const g = Math.floor(100 + t * 80);
+          const r = Math.floor(20 + t * 40);
+          return `rgb(${r},${g},30)`;
+        }
+      },
+      {
+        name: 'koch snowflake',
+        axiom: 'F--F--F',
+        rules: { F: 'F+F--F+F' },
+        angle: 60,
+        start: { x: W * 0.15, y: H * 0.65, heading: 0 },
+        stepScale: 1.0,
+        defaultDepth: 4,
+        color: () => '#3a6a8a'
+      },
+      {
+        name: 'dragon curve',
+        axiom: 'F',
+        rules: { F: 'F+G', G: 'F-G' },
+        angle: 90,
+        start: { x: W * 0.4, y: H * 0.55, heading: 0 },
+        stepScale: 1.0,
+        defaultDepth: 12,
+        color: (depth, maxDepth, stack, step, totalSteps) => {
+          const t = step / Math.max(totalSteps, 1);
+          const r = Math.floor(60 + t * 140);
+          const b = Math.floor(180 - t * 100);
+          return `rgb(${r},60,${b})`;
+        }
+      },
+      {
+        name: 'sierpinski',
+        axiom: 'F-G-G',
+        rules: { F: 'F-G+F+G-F', G: 'GG' },
+        angle: 120,
+        start: { x: W * 0.1, y: H * 0.85, heading: 0 },
+        stepScale: 1.0,
+        defaultDepth: 5,
+        color: (depth, maxDepth, stack, step, totalSteps) => {
+          const t = step / Math.max(totalSteps, 1);
+          const r = Math.floor(80 + t * 120);
+          const g = Math.floor(40 + t * 80);
+          return `rgb(${r},${g},100)`;
+        }
+      },
+      {
+        name: 'fern',
+        axiom: 'X',
+        rules: { X: 'F+[[X]-X]-F[-FX]+X', F: 'FF' },
+        angle: 22.5,
+        start: { x: W/2 + 20, y: H - 10, heading: -90 },
+        stepScale: 0.4,
+        defaultDepth: 6,
+        color: (depth, maxDepth, stack) => {
+          const t = stack / Math.max(maxDepth * 2, 1);
+          return `rgb(${Math.floor(15 + t*35)},${Math.floor(80 + t*100)},${Math.floor(15 + t*20)})`;
+        }
+      }
+    ];
+
+    let currentPreset = 0;
+    let currentString = '';
+    let animFrame    = null;
+
+    function expand(axiom, rules, depth) {
+      let s = axiom;
+      for (let i = 0; i < depth; i++) {
+        let next = '';
+        for (const ch of s) {
+          next += rules[ch] !== undefined ? rules[ch] : ch;
+        }
+        s = next;
+      }
+      return s;
+    }
+
+    function computeStep(str, preset) {
+      // Walk string to find bounding box, then scale to fit canvas
+      const angle = preset.angle * Math.PI / 180;
+      let x = 0, y = 0;
+      let heading = preset.start.heading * Math.PI / 180;
+      let minX = 0, maxX = 0, minY = 0, maxY = 0;
+      const stack = [];
+      const step = 1;
+
+      for (const ch of str) {
+        switch (ch) {
+          case 'F': case 'G':
+            x += step * Math.cos(heading);
+            y += step * Math.sin(heading);
+            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+            break;
+          case '+': heading += angle; break;
+          case '-': heading -= angle; break;
+          case '[': stack.push({x,y,heading}); break;
+          case ']': ({x,y,heading} = stack.pop()); break;
+        }
+      }
+
+      const rangeX = maxX - minX || 1;
+      const rangeY = maxY - minY || 1;
+      const margin = 20;
+      const scaleX = (W - 2 * margin) / rangeX;
+      const scaleY = (H - 2 * margin) / rangeY;
+      const scale = Math.min(scaleX, scaleY) * preset.stepScale;
+
+      return { step: scale, offsetX: -minX, offsetY: -minY, rangeX, rangeY };
+    }
+
+    function buildSegments(str, preset, step, offsetX, offsetY, rangeX, rangeY) {
+      const angle = preset.angle * Math.PI / 180;
+      const margin = 20;
+      const scaleX = (W - 2 * margin) / rangeX;
+      const scaleY = (H - 2 * margin) / rangeY;
+      const sc = Math.min(scaleX, scaleY) * preset.stepScale;
+
+      // Determine start position to center the result
+      const startX = margin + (W - 2*margin) * 0.5 - (rangeX * sc * 0.5);
+      // Use preset's y hint as fraction
+      const startY = preset.start.y;
+
+      let x = startX;
+      let y = startY;
+      let heading = preset.start.heading * Math.PI / 180;
+      let stackDepth = 0;
+      const stateStack = [];
+      const segments = [];
+      let segIdx = 0;
+
+      for (const ch of str) {
+        switch (ch) {
+          case 'F': case 'G': {
+            const nx = x + sc * Math.cos(heading);
+            const ny = y + sc * Math.sin(heading);
+            segments.push({ x1: x, y1: y, x2: nx, y2: ny, stackDepth, idx: segIdx++ });
+            x = nx; y = ny;
+            break;
+          }
+          case '+': heading += angle; break;
+          case '-': heading -= angle; break;
+          case '[': stateStack.push({x,y,heading,stackDepth}); stackDepth++; break;
+          case ']': ({x,y,heading,stackDepth} = stateStack.pop()); break;
+        }
+      }
+      return segments;
+    }
+
+    function getColor(preset, seg, totalSegs, maxStack) {
+      if (typeof preset.color === 'function') {
+        return preset.color(seg.stackDepth, maxStack, seg.stackDepth, seg.idx, totalSegs);
+      }
+      return preset.color;
+    }
+
+    function drawSegments(segments, preset) {
+      ctx.fillStyle = '#080808';
+      ctx.fillRect(0, 0, W, H);
+
+      if (!segments.length) return;
+
+      const maxStack = Math.max(...segments.map(s => s.stackDepth));
+
+      ctx.lineWidth = 0.8;
+      for (const seg of segments) {
+        ctx.strokeStyle = getColor(preset, seg, segments.length, maxStack);
+        ctx.beginPath();
+        ctx.moveTo(seg.x1, seg.y1);
+        ctx.lineTo(seg.x2, seg.y2);
+        ctx.stroke();
+      }
+    }
+
+    function drawCurrent() {
+      if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+      const preset = PRESETS[currentPreset];
+      const depth  = parseInt(document.getElementById('depth').value);
+      const str    = expand(preset.axiom, preset.rules, depth);
+      currentString = str;
+
+      const { step, offsetX, offsetY, rangeX, rangeY } = computeStep(str, preset);
+      const segments = buildSegments(str, preset, step, offsetX, offsetY, rangeX, rangeY);
+      drawSegments(segments, preset);
+      updateStats(str, depth, preset);
+    }
+
+    function animateGrow() {
+      if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+      const preset   = PRESETS[currentPreset];
+      const maxDepth = parseInt(document.getElementById('depth').value);
+
+      let depth = 0;
+      function step() {
+        const str    = expand(preset.axiom, preset.rules, depth);
+        const bounds = computeStep(str, preset);
+        const segs   = buildSegments(str, preset, bounds.step, bounds.offsetX, bounds.offsetY, bounds.rangeX, bounds.rangeY);
+        drawSegments(segs, preset);
+        updateStats(str, depth, preset);
+        depth++;
+        if (depth <= maxDepth) {
+          // Pause between steps so you can see each generation
+          setTimeout(() => { animFrame = requestAnimationFrame(step); }, 600);
+        }
+      }
+      step();
+    }
+
+    function updateStats(str, depth, preset) {
+      const el = document.getElementById('stats');
+      const len = str.length;
+      const moves = (str.match(/[FG]/g) || []).length;
+      const turns = (str.match(/[+\-]/g) || []).length;
+      const branches = (str.match(/\[/g) || []).length;
+
+      el.innerHTML =
+        `generation: <span>${depth}</span>&nbsp;&nbsp;` +
+        `string length: <span>${len.toLocaleString()}</span><br>` +
+        `segments: <span>${moves.toLocaleString()}</span>&nbsp;&nbsp;` +
+        `turns: <span>${turns.toLocaleString()}</span>&nbsp;&nbsp;` +
+        `branches: <span>${branches.toLocaleString()}</span>`;
+    }
+
+    function showRules(preset) {
+      const el = document.getElementById('rule-display');
+      const ruleLines = Object.entries(preset.rules)
+        .map(([k, v]) => `<span class="key">${k}</span> <span class="arrow">→</span> <span class="val">${v}</span>`)
+        .join('<br>');
+      el.innerHTML =
+        `axiom: <span class="key">${preset.axiom}</span><br>` +
+        ruleLines + `<br>angle: <span class="key">${preset.angle}°</span>`;
+    }
+
+    function loadPreset(i) {
+      currentPreset = i;
+      // Update button states
+      document.querySelectorAll('#presets button').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === i);
+      });
+      // Set default depth for this preset
+      const preset = PRESETS[i];
+      const depthEl = document.getElementById('depth');
+      depthEl.value = preset.defaultDepth;
+      document.getElementById('depth-val').textContent = preset.defaultDepth;
+      showRules(preset);
+      drawCurrent();
+    }
+
+    function onDepthChange() {
+      const v = document.getElementById('depth').value;
+      document.getElementById('depth-val').textContent = v;
+    }
+
+    // Init
+    loadPreset(0);
+  </script>
+
+</body>
+</html>
