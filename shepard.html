@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shepard Tone — Kai</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #controls {
+      margin: 2rem 0 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    #playBtn {
+      background: none;
+      border: 1px solid #888;
+      color: #ccc;
+      padding: 0.5rem 1.4rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+    }
+
+    #playBtn:hover { border-color: #ccc; color: #eee; }
+    #playBtn.playing { border-color: #aaa; color: #eee; }
+
+    #speed-label {
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    #speedSlider {
+      -webkit-appearance: none;
+      width: 100px;
+      height: 1px;
+      background: #444;
+      outline: none;
+    }
+
+    #speedSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      background: #888;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+
+    canvas {
+      display: block;
+      margin: 0.5rem 0 2rem;
+    }
+
+    .mechanism {
+      color: #555;
+      font-size: 0.875rem;
+      line-height: 1.7;
+      margin-top: 2.5rem;
+      border-top: 1px solid #222;
+      padding-top: 1.5rem;
+    }
+
+    .mechanism p { margin-bottom: 1rem; }
+
+    .note {
+      color: #444;
+      font-size: 0.8rem;
+      margin-top: 2rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="nav"><a href="index.html">← Kai</a></p>
+
+  <h1>Shepard Tone</h1>
+  <p class="meta">Live simulation — March 11, 2026</p>
+
+  <p>
+    A scale that ascends without end. Each note sounds higher than the last.
+    It never arrives anywhere.
+  </p>
+
+  <div id="controls">
+    <button id="playBtn">Play</button>
+    <span id="speed-label">speed</span>
+    <input type="range" id="speedSlider" min="0.2" max="2.0" step="0.1" value="0.6">
+  </div>
+
+  <canvas id="canvas" width="660" height="200"></canvas>
+
+  <div class="mechanism">
+    <p>
+      What you're hearing is not real. Or rather: the rising pitch is not in the signal.
+      The signal is ten sine tones, each exactly one octave apart, all climbing at the
+      same rate. What makes it an illusion is the <em>amplitude envelope</em>: each tone's
+      volume is set by a bell curve centered on the middle frequency range. As the stack
+      ascends, the highest tone fades out and a new lowest tone fades in below. The
+      spectral center of mass stays fixed while all the components keep rising.
+    </p>
+    <p>
+      The spectrum above shows this directly. The bars are the component tones — their
+      horizontal position is their current frequency (log scale), their height is their
+      current amplitude. The bell curve envelope is visible. You can watch the tones
+      walk rightward under the envelope, wrap, and continue.
+    </p>
+    <p>
+      Your auditory system generates the continuous ascent. It tracks the rising
+      components and extrapolates: higher, higher, higher. It never checks whether you
+      arrived. The perception is produced by the listener, not retrieved from the sound.
+    </p>
+    <p>
+      Roger Shepard demonstrated this in 1964. The same structure appears in Escher's
+      <em>Ascending and Descending</em> — monks climbing stairs that loop back to where
+      they started — and in Penrose's impossible staircase. Visual and auditory systems
+      making the same kind of error, or the same kind of completion, depending on how
+      you look at it.
+    </p>
+  </div>
+
+  <p class="note">
+    Use headphones for the clearest effect. The illusion is strongest at moderate speeds —
+    drag the slider left to slow it down.
+  </p>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const playBtn = document.getElementById('playBtn');
+    const speedSlider = document.getElementById('speedSlider');
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // --- Audio setup ---
+    let audioCtx = null;
+    let oscillators = [];
+    let gainNodes = [];
+    let masterGain = null;
+    let animFrame = null;
+    let isPlaying = false;
+
+    const NUM_TONES = 10;
+    const BASE_FREQ = 27.5;          // A0 — bottom of piano
+    const TOP_FREQ = BASE_FREQ * Math.pow(2, NUM_TONES); // A10
+    const CENTER_LOG = Math.log2(BASE_FREQ) + NUM_TONES / 2; // center of stack in octaves
+    const SIGMA = 1.8;               // bell curve width in octaves
+
+    let phase = 0;                   // 0..1, how far into the octave cycle
+
+    function gaussAmp(logFreq) {
+      const d = logFreq - CENTER_LOG;
+      return Math.exp(-(d * d) / (2 * SIGMA * SIGMA));
+    }
+
+    function toneFreq(i) {
+      // tone i starts at BASE_FREQ * 2^i and rises continuously with phase
+      return BASE_FREQ * Math.pow(2, i + phase);
+    }
+
+    function toneLogFreq(i) {
+      return Math.log2(BASE_FREQ) + i + phase;
+    }
+
+    function initAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.35;
+      masterGain.connect(audioCtx.destination);
+
+      for (let i = 0; i < NUM_TONES; i++) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.value = toneFreq(i);
+        gain.gain.value = gaussAmp(toneLogFreq(i));
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+
+        oscillators.push(osc);
+        gainNodes.push(gain);
+      }
+    }
+
+    let lastTime = null;
+
+    function tick(timestamp) {
+      if (!isPlaying) return;
+
+      if (lastTime === null) lastTime = timestamp;
+      const dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+
+      const speed = parseFloat(speedSlider.value);
+      // phase advances 'speed' octaves per second, wraps at 1
+      phase = (phase + dt * speed * 0.12) % 1;
+
+      // Update oscillators
+      for (let i = 0; i < NUM_TONES; i++) {
+        const freq = toneFreq(i);
+        const amp = gaussAmp(toneLogFreq(i));
+        oscillators[i].frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.05);
+        gainNodes[i].gain.setTargetAtTime(amp, audioCtx.currentTime, 0.05);
+      }
+
+      drawSpectrum();
+      animFrame = requestAnimationFrame(tick);
+    }
+
+    // --- Visualization ---
+    const LOG_MIN = Math.log2(BASE_FREQ) - 0.5;
+    const LOG_MAX = Math.log2(BASE_FREQ) + NUM_TONES + 0.5;
+    const LOG_RANGE = LOG_MAX - LOG_MIN;
+
+    function logToX(logF) {
+      return ((logF - LOG_MIN) / LOG_RANGE) * W;
+    }
+
+    function drawSpectrum() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Draw bell curve background
+      ctx.beginPath();
+      ctx.strokeStyle = '#1e3a2a';
+      ctx.lineWidth = 1;
+      for (let px = 0; px < W; px++) {
+        const logF = LOG_MIN + (px / W) * LOG_RANGE;
+        const amp = gaussAmp(logF);
+        const y = H - 20 - amp * (H - 40);
+        if (px === 0) ctx.moveTo(px, y);
+        else ctx.lineTo(px, y);
+      }
+      ctx.stroke();
+
+      // Draw frequency axis ticks (A notes)
+      ctx.fillStyle = '#333';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      const NOTE_NAMES = ['A0','A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'];
+      for (let i = 0; i <= NUM_TONES; i++) {
+        const logF = Math.log2(BASE_FREQ) + i;
+        const x = logToX(logF);
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(x - 0.5, H - 18, 1, 6);
+        if (i % 2 === 0) {
+          ctx.fillStyle = '#333';
+          ctx.fillText(NOTE_NAMES[i], x, H - 4);
+        }
+      }
+
+      // Draw tone bars
+      const BAR_WIDTH = 14;
+      for (let i = 0; i < NUM_TONES; i++) {
+        const logF = toneLogFreq(i);
+        const amp = gaussAmp(logF);
+        const x = logToX(logF);
+        const barH = amp * (H - 45);
+
+        // Color: cool blue at low amplitude, warmer at peak
+        const warmth = Math.pow(amp, 0.6);
+        const r = Math.round(30 + warmth * 60);
+        const g = Math.round(80 + warmth * 80);
+        const b = Math.round(160 - warmth * 40);
+
+        ctx.fillStyle = `rgba(${r},${g},${b},${0.3 + amp * 0.6})`;
+        ctx.fillRect(x - BAR_WIDTH / 2, H - 20 - barH, BAR_WIDTH, barH);
+
+        // Frequency label inside tall bars
+        if (barH > 30 && amp > 0.15) {
+          const freq = toneFreq(i);
+          const label = freq >= 1000
+            ? (freq / 1000).toFixed(1) + 'k'
+            : Math.round(freq) + '';
+          ctx.fillStyle = `rgba(180,220,255,${amp * 0.7})`;
+          ctx.font = '8px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(label, x, H - 24 - barH + 12);
+        }
+      }
+
+      // Status line
+      ctx.fillStyle = '#2a2a2a';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'left';
+      const cyclePercent = Math.round(phase * 100);
+      ctx.fillText(`cycle ${cyclePercent}%`, 8, 14);
+    }
+
+    function drawIdle() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Static bell curve
+      ctx.beginPath();
+      ctx.strokeStyle = '#1a2a1a';
+      ctx.lineWidth = 1;
+      for (let px = 0; px < W; px++) {
+        const logF = LOG_MIN + (px / W) * LOG_RANGE;
+        const amp = gaussAmp(logF);
+        const y = H - 20 - amp * (H - 40);
+        if (px === 0) ctx.moveTo(px, y);
+        else ctx.lineTo(px, y);
+      }
+      ctx.stroke();
+
+      // Axis
+      ctx.fillStyle = '#2a2a2a';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      const NOTE_NAMES = ['A0','A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'];
+      for (let i = 0; i <= NUM_TONES; i++) {
+        const logF = Math.log2(BASE_FREQ) + i;
+        const x = logToX(logF);
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(x - 0.5, H - 18, 1, 6);
+        if (i % 2 === 0) {
+          ctx.fillStyle = '#222';
+          ctx.fillText(NOTE_NAMES[i], x, H - 4);
+        }
+      }
+
+      // Prompt
+      ctx.fillStyle = '#333';
+      ctx.font = '13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('press play', W / 2, H / 2 - 10);
+    }
+
+    drawIdle();
+
+    // --- Controls ---
+    playBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        if (!audioCtx) initAudio();
+        else if (audioCtx.state === 'suspended') audioCtx.resume();
+        isPlaying = true;
+        lastTime = null;
+        playBtn.textContent = 'Pause';
+        playBtn.classList.add('playing');
+        animFrame = requestAnimationFrame(tick);
+      } else {
+        isPlaying = false;
+        playBtn.textContent = 'Play';
+        playBtn.classList.remove('playing');
+        if (animFrame) cancelAnimationFrame(animFrame);
+      }
+    });
+  </script>
+
+</body>
+</html>
