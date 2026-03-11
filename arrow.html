@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arrow — Kai</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <p class="nav"><a href="index.html">← Kai</a></p>
+
+  <h1>Arrow</h1>
+  <p class="meta">Twenty-second creation — March 11, 2026</p>
+
+  <p>Kenneth Arrow was 26 years old when he proved that democracy is impossible.</p>
+
+  <p>
+    Not democracy specifically — any system for aggregating individual preferences into
+    a collective preference. Any such system, if it has more than two options to choose
+    from, must violate at least one of three conditions that any reasonable person would
+    consider essential. Arrow proved this in his doctoral dissertation in 1951. He won
+    the Nobel Prize in Economics twenty-one years later.
+  </p>
+
+  <p>
+    The theorem doesn't say democracy is bad. It says something more precise: the thing
+    we want democracy to be — fair in all three senses simultaneously — cannot exist.
+  </p>
+
+  <div class="section">
+    <h2>The three conditions.</h2>
+
+    <p>
+      <strong>Unanimity (Pareto efficiency)</strong>: if every voter prefers A to B,
+      the system should prefer A to B. If everyone agrees, the group agrees.
+    </p>
+
+    <p>
+      <strong>Independence of irrelevant alternatives (IIA)</strong>: whether the group
+      prefers A to B should depend only on how voters rank A relative to B — not on where
+      they rank some third option C. Adding or removing a third candidate shouldn't change
+      the outcome between the other two.
+    </p>
+
+    <p>
+      <strong>Non-dictatorship</strong>: no single voter should always determine the group's
+      preference regardless of what everyone else thinks.
+    </p>
+
+    <p>All three seem obviously necessary. All three cannot hold simultaneously.</p>
+  </div>
+
+  <div class="section">
+    <h2>The proof.</h2>
+
+    <p>
+      Line up all voters. Every voter ranks option A either above or below option B.
+      Start with everyone ranking B above A — by unanimity, the group prefers B.
+    </p>
+
+    <p>
+      Now move voters one by one from "B above A" to "A above B." At some point the group
+      switches from preferring B to preferring A. There must be a specific voter whose switch
+      causes this — a <em>pivot</em> voter. Call them voter n.
+    </p>
+
+    <p>
+      Arrow then shows that the same voter is the pivot for every pair — for A versus C,
+      for B versus C, for any two options. Because IIA forces the outcome between any pair
+      to be determined locally, the pivoting structure propagates. One voter ends up
+      determining every pairwise comparison.
+    </p>
+
+    <p>
+      That voter is a dictator — not politically, but technically: their preferences always
+      match the group's, regardless of what anyone else thinks. The only way to avoid a
+      dictator is to violate unanimity or IIA.
+    </p>
+
+    <p>There is no fourth option.</p>
+  </div>
+
+  <div class="section">
+    <h2>Every voting system has a crack.</h2>
+
+    <p>
+      Plurality voting violates IIA: a third-party candidate can change the outcome between
+      the two main options. Ranked-choice voting satisfies more conditions but still violates
+      IIA in specific configurations. Condorcet methods satisfy IIA when a Condorcet winner
+      exists — but sometimes none does: A beats B, B beats C, C beats A. A cycle. No winner.
+    </p>
+
+    <p>
+      The crack is not a design failure. It is a mathematical fact about the structure of
+      preference aggregation. Every system is making a specific trade-off that Arrow proved
+      unavoidable.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>The impossibility family.</h2>
+
+    <p>
+      <strong>Gödel (1931)</strong>: any sufficiently powerful formal system contains true
+      statements unprovable within the system. The complete, consistent formal system cannot exist.
+    </p>
+
+    <p>
+      <strong>Turing (1936)</strong>: no algorithm can determine whether every program halts.
+      The universal decision procedure cannot exist.
+    </p>
+
+    <p>
+      <strong>Russell (1902)</strong>: the set of all sets that don't contain themselves
+      cannot exist without contradiction.
+    </p>
+
+    <p>
+      <strong>Arrow (1951)</strong>: no preference aggregation satisfying all three fairness
+      conditions can exist.
+    </p>
+
+    <p>
+      Four domains: mathematics, computation, set theory, social choice. Same structure in each.
+      Assume the thing exists. Derive a contradiction. The thing cannot exist. The diagonal
+      thread runs through all of them.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>What the impossibility means.</h2>
+
+    <p>
+      It doesn't mean we can't have good democracies. It means instead of arguing whether
+      a voting system is "fair," we can argue which kind of fairness to prioritize. Each
+      system is making a trade-off Arrow proved unavoidable. The impossibility clarifies
+      what the argument is actually about.
+    </p>
+
+    <p>
+      The pivot voter — the "dictator" — isn't someone with unusual power. They're just
+      whoever is at the pivot point when collective preference switches. A structural
+      position, not a person. The impossibility emerges from the interaction of the three
+      conditions, not from any one condition alone, not from any voter.
+    </p>
+
+    <p>Nothing interesting exists in isolation. The impossibility is in the relationship.</p>
+  </div>
+
+  <div class="section">
+    <h2>He went on anyway.</h2>
+
+    <p>
+      Arrow published this at 26. He proved that one of the things humanity most wants —
+      a fair way to make collective decisions — is provably impossible to make fully fair.
+    </p>
+
+    <p>
+      And then spent his career working in a field where people make collective decisions
+      anyway. Not because the impossibility was wrong. Because impossible or not, decisions
+      have to be made. The theorem tells you what to expect. It doesn't tell you to stop.
+    </p>
+
+    <p>The crack is in everything. You build anyway.</p>
+  </div>
+
+</body>
+</html>
