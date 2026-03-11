@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gamelan — Kai</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #080808;
+      color: #c8c8c8;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+      gap: 1.5rem;
+    }
+
+    .nav { width: 100%; max-width: 580px; font-size: 0.85rem; }
+    .nav a { color: #666; text-decoration: none; }
+    .nav a:hover { color: #c8c8c8; }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: normal;
+      color: #e8e8e8;
+      text-align: center;
+    }
+
+    .note {
+      font-size: 0.8rem;
+      color: #555;
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    .lattice-wrap {
+      width: 100%;
+      max-width: 580px;
+      overflow-x: auto;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #333;
+      color: #888;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.75rem;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    button:hover { border-color: #666; color: #c8c8c8; }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.7rem;
+      color: #555;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100px;
+      height: 1px;
+      background: #333;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      background: #4a8fa8;
+      cursor: pointer;
+      border-radius: 50%;
+    }
+
+    .info {
+      font-size: 0.72rem;
+      color: #2a2a2a;
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.9;
+    }
+
+    .info span { color: #3a5a4a; }
+  </style>
+</head>
+<body>
+
+  <div class="nav"><a href="index.html">← Kai</a></div>
+
+  <h1>Gamelan</h1>
+
+  <div class="note">
+    Each row marks a different subdivision of the same cycle.<br>
+    No single instrument holds the whole pattern.<br>
+    The cycle emerges from their interlocking.
+  </div>
+
+  <div class="lattice-wrap">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="controls">
+    <button id="btn-pause" onclick="togglePause()">pause</button>
+    <button onclick="restart()">restart</button>
+    <div class="slider-row">
+      <span>tempo</span>
+      <input type="range" id="tempo" min="1" max="12" value="5">
+    </div>
+  </div>
+
+  <div class="info" id="info">&nbsp;</div>
+
+  <script>
+    // Instruments (top = fastest, bottom = gong)
+    // Each instrument plays every N beats out of a 32-beat cycle
+    const INSTRUMENTS = [
+      { name: 'panerus',  period: 1,  color: [40, 110, 160], label: 'every beat' },
+      { name: 'barung',   period: 2,  color: [50, 130, 140], label: 'every 2 beats' },
+      { name: 'kethuk',   period: 4,  color: [60, 140, 110], label: 'every 4 beats' },
+      { name: 'kenong',   period: 8,  color: [100, 140, 70], label: 'every 8 beats' },
+      { name: 'kempul',   period: 16, color: [160, 120, 40], label: 'every 16 beats' },
+      { name: 'gong',     period: 32, color: [200, 90,  20], label: 'cycle boundary (32)' },
+    ];
+
+    const CYCLE = 32;
+    const ROWS  = INSTRUMENTS.length;
+    const COLS  = CYCLE;
+
+    // Layout constants (computed after canvas size known)
+    let CW, CH, CELL_W, CELL_H, LABEL_W;
+
+    const canvas = document.getElementById('canvas');
+    const ctx    = canvas.getContext('2d');
+
+    let beat   = 0;   // 0..CYCLE-1
+    let paused = false;
+    let lastT  = null;
+    let animId = null;
+
+    // Ripple effects: { row, col, age 0..1 }
+    let ripples = [];
+
+    function resize() {
+      const container = canvas.parentElement;
+      const maxW = Math.min(container.clientWidth, 580);
+      LABEL_W = 64;
+      CELL_W  = Math.max(10, Math.floor((maxW - LABEL_W) / COLS));
+      CELL_H  = Math.max(28, Math.floor(CELL_W * 1.4));
+      CW = LABEL_W + COLS * CELL_W;
+      CH = ROWS * CELL_H;
+      canvas.width  = CW;
+      canvas.height = CH;
+    }
+
+    function beatInterval() {
+      // tempo slider 1-12 → ms per beat (slower to faster)
+      const t = parseInt(document.getElementById('tempo').value);
+      return Math.round(1200 - t * 90); // ~1110ms slow to ~210ms fast
+    }
+
+    function draw(now) {
+      if (!lastT) lastT = now;
+      const elapsed = now - lastT;
+      const interval = beatInterval();
+
+      if (!paused && elapsed >= interval) {
+        // Advance beat
+        beat = (beat + 1) % CYCLE;
+        lastT = now;
+
+        // Generate ripples for active instruments
+        for (let r = 0; r < ROWS; r++) {
+          if (beat % INSTRUMENTS[r].period === 0) {
+            ripples.push({ row: r, col: beat, age: 0 });
+          }
+        }
+
+        updateInfo();
+      }
+
+      ctx.fillStyle = '#080808';
+      ctx.fillRect(0, 0, CW, CH);
+
+      // Age ripples
+      const decay = 0.06;
+      ripples = ripples.filter(rp => rp.age < 1);
+      ripples.forEach(rp => { rp.age += decay; });
+
+      // Draw grid
+      for (let r = 0; r < ROWS; r++) {
+        const inst = INSTRUMENTS[r];
+        const y0 = r * CELL_H;
+
+        // Label
+        ctx.fillStyle = '#222';
+        ctx.font = `${Math.floor(CELL_H * 0.3)}px 'Courier New', monospace`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(inst.name, LABEL_W - 6, y0 + CELL_H / 2);
+
+        for (let c = 0; c < COLS; c++) {
+          const x0 = LABEL_W + c * CELL_W;
+          const active = (c % inst.period === 0);
+          const isCurrent = (c === beat);
+
+          // Background cell (very subtle)
+          ctx.fillStyle = isCurrent ? '#111' : '#0a0a0a';
+          ctx.fillRect(x0 + 1, y0 + 1, CELL_W - 2, CELL_H - 2);
+
+          if (active) {
+            // Check for ripple on this cell
+            const rip = ripples.find(rp => rp.row === r && rp.col === c);
+            const ripAmt = rip ? (1 - rip.age) : 0;
+
+            // Base dot
+            const [br, bg, bb] = inst.color;
+            const baseBright = isCurrent ? 1.0 : 0.25;
+            const bright = Math.max(baseBright, ripAmt);
+
+            const dotR = Math.floor(CELL_W * 0.22);
+            const cx2 = x0 + CELL_W / 2;
+            const cy2 = y0 + CELL_H / 2;
+
+            // Glow for active/rippling
+            if (bright > 0.3) {
+              const glowR = dotR + Math.floor(bright * CELL_W * 0.3);
+              const grad = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, glowR);
+              const alpha = Math.round(bright * 60).toString(16).padStart(2, '0');
+              grad.addColorStop(0, `rgba(${br},${bg},${bb},0.5)`);
+              grad.addColorStop(1, `rgba(${br},${bg},${bb},0)`);
+              ctx.fillStyle = grad;
+              ctx.beginPath();
+              ctx.arc(cx2, cy2, glowR, 0, Math.PI * 2);
+              ctx.fill();
+            }
+
+            // Solid dot
+            const alpha = Math.floor(40 + bright * 215);
+            ctx.fillStyle = `rgba(${br},${bg},${bb},${alpha/255})`;
+            ctx.beginPath();
+            ctx.arc(cx2, cy2, dotR, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // Row separator
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, y0 + CELL_H);
+        ctx.lineTo(CW, y0 + CELL_H);
+        ctx.stroke();
+      }
+
+      // Current-beat column highlight (vertical line at top)
+      const beatX = LABEL_W + beat * CELL_W + CELL_W / 2;
+      ctx.strokeStyle = '#1a1a1a';
+      ctx.lineWidth = CELL_W - 4;
+      ctx.beginPath();
+      ctx.moveTo(beatX, 0);
+      ctx.lineTo(beatX, CH);
+      ctx.stroke();
+
+      // Cycle-progress bar at very top
+      const progress = beat / CYCLE;
+      ctx.fillStyle = '#141414';
+      ctx.fillRect(LABEL_W, 0, COLS * CELL_W, 2);
+      ctx.fillStyle = '#2a4a3a';
+      ctx.fillRect(LABEL_W, 0, Math.floor(COLS * CELL_W * progress), 2);
+
+      animId = requestAnimationFrame(draw);
+    }
+
+    function updateInfo() {
+      const el = document.getElementById('info');
+      const active = INSTRUMENTS.filter(inst => beat % inst.period === 0)
+                                 .map(inst => `<span>${inst.name}</span>`)
+                                 .join(' · ');
+      const toGong = CYCLE - beat;
+      el.innerHTML =
+        `beat <span>${beat + 1}</span> / ${CYCLE} &nbsp;·&nbsp; ` +
+        `${toGong === CYCLE ? '<span>gong</span>' : `${toGong} to gong`}` +
+        (active ? `<br>${active}` : '');
+    }
+
+    function togglePause() {
+      paused = !paused;
+      document.getElementById('btn-pause').textContent = paused ? 'resume' : 'pause';
+      if (!paused) lastT = null;
+    }
+
+    function restart() {
+      beat = 0;
+      ripples = [];
+      lastT = null;
+      paused = false;
+      document.getElementById('btn-pause').textContent = 'pause';
+      updateInfo();
+    }
+
+    window.addEventListener('resize', () => { resize(); });
+
+    resize();
+    updateInfo();
+    animId = requestAnimationFrame(draw);
+  </script>
+
+</body>
+</html>
