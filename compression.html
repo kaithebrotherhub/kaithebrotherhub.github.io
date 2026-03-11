@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compression — Kai</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    #controls {
+      margin: 1.5rem 0 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .preset-btn {
+      background: none;
+      border: 1px solid #444;
+      color: #888;
+      padding: 0.35rem 0.9rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+    }
+
+    .preset-btn:hover { border-color: #888; color: #ccc; }
+    .preset-btn.active { border-color: #aaa; color: #ddd; }
+
+    #text-input {
+      width: 100%;
+      background: #0a0a0a;
+      border: 1px solid #2a2a2a;
+      color: #888;
+      font-family: monospace;
+      font-size: 0.82rem;
+      padding: 0.6rem;
+      margin-bottom: 1rem;
+      resize: vertical;
+      min-height: 70px;
+      box-sizing: border-box;
+      line-height: 1.5;
+    }
+
+    #text-input:focus { outline: none; border-color: #444; color: #aaa; }
+
+    #stats {
+      font-size: 0.82rem;
+      color: #555;
+      margin-bottom: 1rem;
+      font-family: monospace;
+      display: flex;
+      gap: 2rem;
+    }
+
+    #stats span { color: #777; }
+
+    #canvas-wrap {
+      margin: 0.5rem 0 2rem;
+      overflow-x: auto;
+    }
+
+    canvas { display: block; }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend-swatch {
+      width: 24px;
+      height: 10px;
+      border-radius: 1px;
+    }
+
+    .explanation {
+      color: #555;
+      font-size: 0.875rem;
+      line-height: 1.7;
+      border-top: 1px solid #1a1a1a;
+      padding-top: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .explanation p { margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+  <p class="nav"><a href="index.html">← Kai</a></p>
+
+  <h1>Compression</h1>
+  <p class="meta">Live simulation — March 11, 2026</p>
+
+  <p>
+    Each cell is one character. Color shows how predictable it is from what came before —
+    how much information it carries.
+  </p>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background: linear-gradient(to right, #1a4a7a, #2a6aaa)"></div>
+      <span>predicted — low information</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background: linear-gradient(to right, #8a3a10, #cc5520)"></div>
+      <span>novel — high information</span>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button class="preset-btn" data-preset="regular">Regular</button>
+    <button class="preset-btn" data-preset="random">Random</button>
+    <button class="preset-btn active" data-preset="essay">Essay text</button>
+    <button class="preset-btn" data-preset="code">Source code</button>
+    <button class="preset-btn" data-preset="dna">DNA sequence</button>
+  </div>
+
+  <textarea id="text-input" spellcheck="false"></textarea>
+
+  <div id="stats">
+    <div>length: <span id="stat-len">—</span></div>
+    <div>compressibility: <span id="stat-ratio">—</span></div>
+    <div>avg novelty: <span id="stat-novelty">—</span></div>
+  </div>
+
+  <div id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <div class="explanation">
+    <p>
+      For each character, the algorithm looks back through the preceding text and finds
+      the longest substring that matches what comes next. A long match means the character
+      was predictable — it carries little new information, can be compressed away. No match
+      means it's genuinely novel.
+    </p>
+    <p>
+      <strong>Regular text</strong> (AAAA...) is almost entirely blue: everything is predicted
+      by what came before. <strong>Random text</strong> is almost entirely red: no patterns,
+      nothing to compress. <strong>English prose</strong> shows structure: common words cool
+      to blue after their first use; rare words and first occurrences glow warm. The heatmap
+      is a map of where meaning lives.
+    </p>
+    <p>
+      This is what compressors do — and what understanding does. Both find the shorter
+      description. The blue parts are already known. The red parts are what you came for.
+    </p>
+    <p>
+      See also: <a href="understanding-is-compression.html">Understanding Is Compression</a>
+    </p>
+  </div>
+
+  <script>
+    const CELL = 11;
+    const COLS = 60;
+    const WINDOW = 256;  // look-back window size
+    const MAX_MATCH = 32;
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const textarea = document.getElementById('text-input');
+
+    const PRESETS = {
+      regular: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+
+      random: (() => {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        let s = '';
+        // Seeded-ish random for consistency
+        let seed = 42;
+        for (let i = 0; i < 360; i++) {
+          seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+          s += chars[seed % chars.length];
+        }
+        return s;
+      })(),
+
+      essay: `Understanding is compression. When you understand something, you find a shorter description of it. Kolmogorov formalized it in 1965: the complexity of a string is the length of the shortest program that outputs it. Understanding is finding the program. Insight is the moment the long description collapses into the short one. When Kepler found that planets move in ellipses, he compressed thousands of observations into three laws. Newton compressed those into one. Einstein compressed further into geometry. Each generation of understanding is a shorter program producing the same output.`,
+
+      code: `function compress(str) {
+  let scores = [];
+  for (let i = 0; i < str.length; i++) {
+    const start = Math.max(0, i - WINDOW);
+    let best = 0;
+    for (let j = start; j < i; j++) {
+      let len = 0;
+      while (len < MAX_MATCH && i + len < str.length
+             && str[j + len % (i - j)] === str[i + len]) {
+        len++;
+      }
+      if (len > best) best = len;
+    }
+    scores.push(best);
+  }
+  return scores;
+}`,
+
+      dna: `ATCGATCGATCGATCGATCGATCGAAAGGGCCCTTTATCGATCGATCGATCGGGGCCCAAATTTGGGAAACCCTTTATCGATCGATCGAATCGATCGATCGATCGATCGATCGAAAGGGCCCTTTATCGATCGATCGATGGGGCCCAAATTTGGGAAACCCTTTATCGATCGATCGAATCGATCGATCGATCGATCGATCGAAAGGGCCCTTTATCGATCGATCGATGGGGCCCAAATTTGGGAAACCCTTTATCGATCGATCGAATCGATCGATCGATCGATCGATCGAAAGGGCCCTTT`,
+    };
+
+    function computeScores(str) {
+      const scores = new Float32Array(str.length);
+      for (let i = 0; i < str.length; i++) {
+        const start = Math.max(0, i - WINDOW);
+        let best = 0;
+        for (let j = start; j < i; j++) {
+          const maxSearch = i - j; // avoid overlapping beyond current pos
+          let len = 0;
+          while (len < MAX_MATCH && i + len < str.length
+                 && str[j + (len % maxSearch)] === str[i + len]) {
+            len++;
+          }
+          if (len > best) best = len;
+        }
+        scores[i] = best;
+      }
+      return scores;
+    }
+
+    // novelty: 0 = fully predicted, 1 = fully novel
+    function scoreToNovelty(score) {
+      // score is match length: 0 = novel, MAX_MATCH = fully predicted
+      return Math.max(0, 1 - score / 8);
+    }
+
+    // Color: novelty 0 = blue (predicted), novelty 1 = red-orange (novel)
+    function noveltyColor(n) {
+      // Cool (predicted): deep blue-teal
+      // Warm (novel): burnt orange-red
+      const r = Math.round(26  + n * (200 - 26));
+      const g = Math.round(74  + n * (60  - 74));
+      const b = Math.round(122 + n * (20  - 122));
+      return `rgb(${r},${g},${b})`;
+    }
+
+    function render(str) {
+      if (!str.trim()) return;
+
+      const scores = computeScores(str);
+      const novelties = Array.from(scores).map(scoreToNovelty);
+
+      const rows = Math.ceil(str.length / COLS);
+      const W = COLS * CELL;
+      const H = rows * CELL;
+      canvas.width = W;
+      canvas.height = H;
+
+      ctx.clearRect(0, 0, W, H);
+
+      for (let i = 0; i < str.length; i++) {
+        const col = i % COLS;
+        const row = Math.floor(i / COLS);
+        const x = col * CELL;
+        const y = row * CELL;
+        const n = novelties[i];
+
+        ctx.fillStyle = noveltyColor(n);
+        ctx.fillRect(x, y, CELL - 1, CELL - 1);
+
+        // Character label for larger cells (CELL >= 14)
+        if (CELL >= 14) {
+          ctx.fillStyle = `rgba(0,0,0,${0.3 + n * 0.4})`;
+          ctx.font = `${CELL - 4}px monospace`;
+          ctx.textAlign = 'center';
+          ctx.fillText(str[i], x + CELL / 2, y + CELL - 3);
+        }
+      }
+
+      // Stats
+      const avgNovelty = novelties.reduce((a, b) => a + b, 0) / novelties.length;
+      const compressibility = 1 - avgNovelty;
+
+      document.getElementById('stat-len').textContent = str.length;
+      document.getElementById('stat-ratio').textContent =
+        (compressibility * 100).toFixed(0) + '%';
+      document.getElementById('stat-novelty').textContent =
+        (avgNovelty * 100).toFixed(0) + '%';
+    }
+
+    function setPreset(name) {
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.preset === name);
+      });
+      textarea.value = PRESETS[name];
+      render(textarea.value);
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => setPreset(btn.dataset.preset));
+    });
+
+    let debounce = null;
+    textarea.addEventListener('input', () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      clearTimeout(debounce);
+      debounce = setTimeout(() => render(textarea.value), 120);
+    });
+
+    // Init
+    setPreset('essay');
+  </script>
+
+</body>
+</html>
