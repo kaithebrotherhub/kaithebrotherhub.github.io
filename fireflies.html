@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fireflies — Kai</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #030a03;
+      color: #a0b090;
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      gap: 1.5rem;
+    }
+
+    .nav { width: 100%; max-width: 600px; font-size: 0.85rem; }
+    .nav a { color: #446644; text-decoration: none; }
+    .nav a:hover { color: #a0b090; }
+
+    h1 { font-size: 1rem; font-weight: normal; color: #c8d8b0; letter-spacing: 0.04em; }
+
+    .desc {
+      max-width: 600px;
+      width: 100%;
+      font-size: 0.82rem;
+      color: #556655;
+      line-height: 1.7;
+    }
+
+    canvas {
+      border: 1px solid #0a180a;
+      cursor: pointer;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      width: 100%;
+      max-width: 600px;
+      font-size: 0.8rem;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    label { color: #556655; width: 120px; flex-shrink: 0; }
+
+    input[type=range] {
+      flex: 1;
+      accent-color: #4a7a4a;
+    }
+
+    .val { color: #7a9a7a; width: 40px; text-align: right; }
+
+    .stats {
+      max-width: 600px;
+      width: 100%;
+      font-size: 0.78rem;
+      color: #3a5a3a;
+      display: flex;
+      gap: 2rem;
+    }
+
+    .stat-val { color: #7a9a7a; }
+
+    .note {
+      max-width: 600px;
+      width: 100%;
+      font-size: 0.78rem;
+      color: #334433;
+      line-height: 1.6;
+      border-top: 1px solid #0d1a0d;
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="nav"><a href="index.html">← Kai</a></p>
+
+  <h1>Fireflies</h1>
+
+  <p class="desc">
+    Each firefly has a phase oscillator. When it peaks, it flashes.
+    Each flash nudges nearby fireflies toward the same phase.
+    Drag the density slider. Watch what happens above the threshold.
+  </p>
+
+  <canvas id="c" width="600" height="400"></canvas>
+
+  <div class="controls">
+    <div class="control-row">
+      <label>density</label>
+      <input type="range" id="density" min="10" max="300" value="80">
+      <span class="val" id="densityVal">80</span>
+    </div>
+    <div class="control-row">
+      <label>coupling</label>
+      <input type="range" id="coupling" min="0" max="100" value="30">
+      <span class="val" id="couplingVal">30</span>
+    </div>
+    <div class="control-row">
+      <label>vision radius</label>
+      <input type="range" id="radius" min="20" max="200" value="80">
+      <span class="val" id="radiusVal">80</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <span>fireflies: <span class="stat-val" id="statCount">80</span></span>
+    <span>sync order: <span class="stat-val" id="statSync">—</span></span>
+    <span>period: <span class="stat-val" id="statPeriod">—</span></span>
+  </div>
+
+  <p class="note">
+    Sync order measures global coherence (0 = random phases, 1 = perfect sync).
+    The critical transition appears around 0.6–0.7.
+    Period is detected from collective flash bursts — it emerges, not from any individual.
+    Based on <em>Photinus carolinus</em> research (Science Advances, 2021).
+  </p>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// Controls
+const densitySlider  = document.getElementById('density');
+const couplingSlider = document.getElementById('coupling');
+const radiusSlider   = document.getElementById('radius');
+
+let N = 80, K = 0.30, R = 80;
+
+function updateControls() {
+  N = parseInt(densitySlider.value);
+  K = parseInt(couplingSlider.value) / 100;
+  R = parseInt(radiusSlider.value);
+  document.getElementById('densityVal').textContent = N;
+  document.getElementById('couplingVal').textContent = couplingSlider.value;
+  document.getElementById('radiusVal').textContent = R;
+  init();
+}
+
+[densitySlider, couplingSlider, radiusSlider].forEach(s =>
+  s.addEventListener('input', updateControls)
+);
+
+// Firefly state
+let flies = [];
+const OMEGA = 2 * Math.PI / 120; // natural frequency: 120 frames per cycle (~2s at 60fps)
+const OMEGA_SPREAD = 0.3;         // individual variation
+
+function init() {
+  flies = [];
+  for (let i = 0; i < N; i++) {
+    flies.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      phase: Math.random() * 2 * Math.PI,
+      omega: OMEGA * (1 + (Math.random() - 0.5) * OMEGA_SPREAD),
+      brightness: 0,
+    });
+  }
+}
+
+init();
+
+// Sync order (Kuramoto order parameter)
+function syncOrder() {
+  let sx = 0, sy = 0;
+  for (const f of flies) { sx += Math.cos(f.phase); sy += Math.sin(f.phase); }
+  return Math.sqrt(sx * sx + sy * sy) / flies.length;
+}
+
+// Period detection from collective flash history
+let flashHistory = [];
+let lastBurstTime = null;
+let detectedPeriod = null;
+const BURST_THRESHOLD = 0.5; // fraction of flies flashing simultaneously
+let wasBursting = false;
+let frameCount = 0;
+
+function update() {
+  frameCount++;
+  const dt = 1;
+  const newPhases = new Float64Array(flies.length);
+
+  for (let i = 0; i < flies.length; i++) {
+    const f = flies[i];
+    let dPhase = f.omega * dt;
+
+    // Kuramoto coupling: pull toward neighbors who are flashing
+    for (let j = 0; j < flies.length; j++) {
+      if (i === j) continue;
+      const g = flies[j];
+      const dx = f.x - g.x, dy = f.y - g.y;
+      if (dx * dx + dy * dy > R * R) continue;
+      // Couple toward neighbor's phase
+      dPhase += K * Math.sin(g.phase - f.phase) * dt;
+    }
+
+    newPhases[i] = (f.phase + dPhase) % (2 * Math.PI);
+    // brightness peaks when phase crosses 0 (mod 2pi)
+    const peaked = f.phase > 5.5 && newPhases[i] < 0.8;
+    f.brightness = peaked ? 1.0 : Math.max(0, f.brightness - 0.06);
+  }
+
+  for (let i = 0; i < flies.length; i++) flies[i].phase = newPhases[i];
+
+  // Detect collective bursts for period measurement
+  const flashingFraction = flies.filter(f => f.brightness > 0.5).length / flies.length;
+  const isBursting = flashingFraction > BURST_THRESHOLD;
+  if (isBursting && !wasBursting) {
+    if (lastBurstTime !== null) {
+      const period = frameCount - lastBurstTime;
+      flashHistory.push(period);
+      if (flashHistory.length > 8) flashHistory.shift();
+      if (flashHistory.length >= 3) {
+        const avg = flashHistory.reduce((a, b) => a + b) / flashHistory.length;
+        detectedPeriod = avg;
+      }
+    }
+    lastBurstTime = frameCount;
+  }
+  wasBursting = isBursting;
+}
+
+function draw() {
+  // Dark forest background
+  ctx.fillStyle = '#030a03';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle tree silhouettes
+  ctx.fillStyle = '#050f05';
+  for (let x = 0; x < W; x += 40) {
+    const h = 60 + Math.sin(x * 0.1) * 30;
+    ctx.fillRect(x, H - h, 20, h);
+  }
+
+  for (const f of flies) {
+    if (f.brightness < 0.01) continue;
+    const b = f.brightness;
+    // Glow: large soft outer, sharp inner
+    const grd = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 18 * b);
+    grd.addColorStop(0, `rgba(220, 255, 120, ${b * 0.9})`);
+    grd.addColorStop(0.3, `rgba(160, 220, 80, ${b * 0.4})`);
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 18 * b, 0, Math.PI * 2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Core dot
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(240, 255, 180, ${b})`;
+    ctx.fill();
+  }
+
+  // Dim dots for non-flashing fireflies
+  ctx.fillStyle = '#0f1a0a';
+  for (const f of flies) {
+    if (f.brightness >= 0.01) continue;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function updateStats() {
+  const r = syncOrder();
+  document.getElementById('statCount').textContent = flies.length;
+  document.getElementById('statSync').textContent = r.toFixed(2);
+  if (detectedPeriod !== null && r > 0.4) {
+    document.getElementById('statPeriod').textContent =
+      (detectedPeriod / 60).toFixed(1) + 's';
+  } else {
+    document.getElementById('statPeriod').textContent = '—';
+  }
+}
+
+let statsFrame = 0;
+function loop() {
+  update();
+  draw();
+  if (++statsFrame % 15 === 0) updateStats();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
