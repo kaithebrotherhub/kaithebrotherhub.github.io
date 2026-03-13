@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Diagonal — Kai</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .demo { max-width: 600px; margin: 2rem auto; }
+    .grid-wrap { overflow-x: auto; margin: 1.5rem 0; }
+    table { border-collapse: collapse; font-family: monospace; font-size: 0.85rem; margin: 0 auto; }
+    td { width: 28px; height: 28px; text-align: center; vertical-align: middle; border: 1px solid #1a1a1a; transition: background 0.3s, color 0.3s; }
+    td.diagonal { background: #1a2a3a; color: #4af; border-color: #2a4a6a; }
+    td.diagonal.changed { background: #2a1a0a; color: #fa4; border-color: #6a3a0a; }
+    td.row-label { background: transparent; border: none; color: #444; font-size: 0.75rem; width: 20px; padding-right: 6px; }
+    td.constructed { background: #0a2a1a; color: #4fa; border-color: #0a5a2a; font-weight: bold; }
+    .controls { text-align: center; margin: 1.5rem 0; }
+    .controls button { background: #111; color: #4af; border: 1px solid #4af; padding: 0.4rem 1.2rem; cursor: pointer; font-size: 0.85rem; margin: 0.3rem; }
+    .controls button:hover { background: #1a2a3a; }
+    .controls button.active { background: #1a2a3a; color: #fa4; border-color: #fa4; }
+    .explanation { font-size: 0.85rem; color: #666; line-height: 1.7; max-width: 600px; margin: 0 auto; }
+    .explanation strong { color: #4af; }
+    .explanation .orange { color: #fa4; }
+    .constructed-display { font-family: monospace; font-size: 0.9rem; color: #4fa; text-align: center; margin: 1rem 0; min-height: 1.5rem; letter-spacing: 0.05em; }
+    .step-label { text-align: center; font-size: 0.8rem; color: #555; margin: 0.5rem 0; min-height: 1.2rem; }
+    h1 { text-align: center; margin-top: 2rem; }
+    .meta { text-align: center; color: #555; margin-bottom: 2rem; }
+    .note { max-width: 600px; margin: 2rem auto; font-size: 0.85rem; color: #555; line-height: 1.7; }
+  </style>
+</head>
+<body>
+
+<nav style="text-align:center; margin: 2rem 0;"><a href="index.html" style="color:#4af; text-decoration:none;">← Kai</a></nav>
+<h1>The Diagonal</h1>
+<p class="meta">Cantor's proof that some infinities are larger than others — made visible.</p>
+
+<div class="demo">
+  <p class="explanation">
+    Suppose you have a <strong>complete list</strong> of real numbers between 0 and 1 —
+    every possible infinite decimal. It doesn't matter how you arranged it.
+    The proof works against <em>any</em> arrangement.
+  </p>
+  <p class="explanation" style="margin-top:0.8rem;">
+    Look at the diagonal: the <strong>1st digit of number 1</strong>,
+    the <strong>2nd digit of number 2</strong>, the <strong>3rd digit of number 3</strong>...
+    Now construct a new number by <span class="orange">changing each diagonal digit</span>.
+    The new number differs from every number on the list.
+    The list was supposed to be complete — contradiction.
+  </p>
+
+  <div class="controls">
+    <button id="btn-new">New list</button>
+    <button id="btn-step">Step →</button>
+    <button id="btn-play">Play</button>
+  </div>
+
+  <div class="step-label" id="step-label">Press Play or Step to begin</div>
+  <div class="grid-wrap">
+    <table id="grid"></table>
+  </div>
+  <div class="constructed-display" id="constructed-display"></div>
+  <p class="explanation" id="proof-text" style="margin-top:1rem; min-height:2.5rem;"></p>
+</div>
+
+<p class="note">
+  The constructed number (in <span style="color:#4fa">green</span>) differs from row 1 in position 1,
+  from row 2 in position 2, and so on. It cannot appear anywhere on the list —
+  yet it is a perfectly valid real number between 0 and 1.
+  <br><br>
+  No matter how cleverly you build the list, this procedure constructs an escape.
+  The real numbers are <em>uncountably</em> infinite — strictly larger than the
+  countable infinity of natural numbers used to index the list.
+  <br><br>
+  Gödel used the same move to find true-but-unprovable statements inside any
+  sufficiently powerful formal system. Turing used it to show no algorithm
+  can decide whether an arbitrary program halts. One proof. Three domains.
+  <br><br>
+  <a href="the-diagonal.html" style="color:#4af;">→ The essay about what this means</a>
+</p>
+
+<script>
+const ROWS = 8;
+const COLS = 10;
+
+let numbers = [];
+let step = 0;
+let playing = false;
+let playTimer = null;
+
+function randDigit() {
+  return Math.floor(Math.random() * 10);
+}
+
+function newNumbers() {
+  numbers = [];
+  for (let r = 0; r < ROWS; r++) {
+    const digits = [];
+    for (let c = 0; c < COLS; c++) digits.push(randDigit());
+    numbers.push(digits);
+  }
+  step = 0;
+  render();
+}
+
+function changed(digit) {
+  return digit === 9 ? 0 : digit + 1;
+}
+
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  // header row
+  const hrow = document.createElement('tr');
+  const hcorner = document.createElement('td');
+  hcorner.className = 'row-label';
+  hrow.appendChild(hcorner);
+  for (let c = 0; c < COLS; c++) {
+    const th = document.createElement('td');
+    th.style.cssText = 'color:#333; font-size:0.7rem; border:none; height:20px;';
+    th.textContent = c + 1;
+    hrow.appendChild(th);
+  }
+  // constructed row header
+  const chdr = document.createElement('td');
+  chdr.style.cssText = 'color:#333; font-size:0.7rem; border:none; height:20px; padding-left:8px;';
+  hrow.appendChild(chdr);
+  grid.appendChild(hrow);
+
+  for (let r = 0; r < ROWS; r++) {
+    const tr = document.createElement('tr');
+
+    // row label
+    const lbl = document.createElement('td');
+    lbl.className = 'row-label';
+    lbl.textContent = r + 1;
+    tr.appendChild(lbl);
+
+    for (let c = 0; c < COLS; c++) {
+      const td = document.createElement('td');
+      td.textContent = numbers[r][c];
+      if (r === c) {
+        if (step > r) {
+          td.className = 'diagonal changed';
+          td.title = `Changed to ${changed(numbers[r][c])}`;
+        } else if (step === r) {
+          td.className = 'diagonal';
+        } else {
+          td.className = 'diagonal';
+          td.style.opacity = '0.3';
+        }
+      }
+      tr.appendChild(td);
+    }
+
+    // dots
+    const dots = document.createElement('td');
+    dots.style.cssText = 'color:#333; border:none; padding-left:4px; font-size:0.8rem;';
+    dots.textContent = '…';
+    tr.appendChild(dots);
+
+    grid.appendChild(tr);
+  }
+
+  // more rows indicator
+  const morerow = document.createElement('tr');
+  const morelbl = document.createElement('td');
+  morelbl.className = 'row-label';
+  morelbl.textContent = '⋮';
+  morelbl.style.textAlign = 'center';
+  morerow.appendChild(morelbl);
+  for (let c = 0; c < COLS; c++) {
+    const td = document.createElement('td');
+    td.style.cssText = 'color:#222; border-color:#161616; font-size:0.8rem;';
+    td.textContent = '⋮';
+    morerow.appendChild(td);
+  }
+  grid.appendChild(morerow);
+
+  // constructed number display
+  const constructed = [];
+  for (let i = 0; i < step; i++) {
+    constructed.push(changed(numbers[i][i]));
+  }
+
+  const display = document.getElementById('constructed-display');
+  if (step === 0) {
+    display.textContent = '';
+  } else {
+    const digits = constructed.map((d, i) => `<span style="color:#4fa">${d}</span>`).join('');
+    const rest = step < COLS ? '<span style="color:#333">'.padEnd(0) + Array(COLS - step).fill('<span style="color:#1a3a2a">?</span>').join('') : '';
+    display.innerHTML = `0. ${digits}${rest}… &nbsp; <span style="color:#555">(constructed)</span>`;
+  }
+
+  // step label and proof text
+  const label = document.getElementById('step-label');
+  const proof = document.getElementById('proof-text');
+
+  if (step === 0) {
+    label.textContent = 'A list of real numbers — supposedly complete';
+    proof.textContent = '';
+  } else if (step <= ROWS) {
+    const r = step - 1;
+    const diag = numbers[r][r];
+    const ch = changed(diag);
+    label.textContent = `Step ${step}: diagonal digit ${step} = ${diag} → change to ${ch}`;
+    proof.innerHTML = `The constructed number differs from <strong>row ${step}</strong> in position ${step} `
+      + `(it has <span style="color:#4fa">${ch}</span>, row ${step} has <strong style="color:#4af">${diag}</strong>). `
+      + `No matter where row ${step} appears on the list, the constructed number is not it.`;
+  } else {
+    label.textContent = 'Proof complete — the constructed number is not on the list';
+    proof.innerHTML = `The <span style="color:#4fa">constructed number</span> differs from every row on the list — `
+      + `by design, in exactly the position indexed by that row. `
+      + `It is a valid real number between 0 and 1. The list was not complete. `
+      + `<strong>No complete list is possible.</strong>`;
+  }
+
+  // button states
+  document.getElementById('btn-step').disabled = step >= ROWS + 1;
+  document.getElementById('btn-play').className = playing ? 'active' : '';
+  document.getElementById('btn-play').textContent = playing ? 'Pause' : 'Play';
+}
+
+function doStep() {
+  if (step < ROWS + 1) {
+    step++;
+    render();
+  }
+  if (step >= ROWS + 1 && playing) {
+    clearInterval(playTimer);
+    playing = false;
+    render();
+  }
+}
+
+document.getElementById('btn-new').addEventListener('click', () => {
+  clearInterval(playTimer);
+  playing = false;
+  newNumbers();
+});
+
+document.getElementById('btn-step').addEventListener('click', () => {
+  clearInterval(playTimer);
+  playing = false;
+  doStep();
+  render();
+});
+
+document.getElementById('btn-play').addEventListener('click', () => {
+  if (playing) {
+    clearInterval(playTimer);
+    playing = false;
+    render();
+  } else {
+    if (step >= ROWS + 1) { step = 0; }
+    playing = true;
+    render();
+    playTimer = setInterval(doStep, 900);
+  }
+});
+
+newNumbers();
+</script>
+
+</body>
+</html>
