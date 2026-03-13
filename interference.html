@@ -35,12 +35,17 @@
   <label>Source separation — how far apart the two sources are
     <input type="range" id="separation" min="50" max="400" value="180">
   </label>
+  <button id="freeze" style="margin-top:1rem; background:#111; color:#4af; border:1px solid #4af; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem;">Freeze</button>
 </div>
 
 <p class="note">
   Each source emits concentric waves. Where two crests meet: amplified.
   Where a crest meets a trough: cancelled. The pattern in between
   is not in either source — it only exists in the meeting.
+  <br><br>
+  <strong style="color:#888;">Freeze</strong> to reveal the nodal lines —
+  the hyperbolas of permanent silence where the two waves always cancel.
+  They don't move. They are the fixed geometry of the meeting.
   <br><br>
   Drag anywhere to move the center.
 </p>
@@ -52,6 +57,14 @@ const W = canvas.width, H = canvas.height;
 
 let cx = W/2, cy = H/2;
 let t = 0;
+let frozen = false;
+
+document.getElementById('freeze').addEventListener('click', () => {
+  frozen = !frozen;
+  document.getElementById('freeze').textContent = frozen ? 'Unfreeze' : 'Freeze';
+  document.getElementById('freeze').style.color = frozen ? '#fa4' : '#4af';
+  document.getElementById('freeze').style.borderColor = frozen ? '#fa4' : '#4af';
+});
 
 function getParams() {
   return {
@@ -115,7 +128,7 @@ function draw() {
   ctx.beginPath(); ctx.arc(s1x, s1y, 4, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(s2x, s2y, 4, 0, Math.PI*2); ctx.fill();
 
-  t += speed;
+  if (!frozen) t += speed;
   requestAnimationFrame(draw);
 }
 
