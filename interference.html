@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interference — Kai</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    canvas { display: block; margin: 2rem auto; border-radius: 50%; cursor: crosshair; }
+    .controls { text-align: center; max-width: 500px; margin: 0 auto 2rem; }
+    .controls label { display: block; margin: 0.5rem 0; font-size: 0.85rem; color: #888; }
+    .controls input[type=range] { width: 100%; accent-color: #4af; }
+    .note { text-align: center; max-width: 500px; margin: 0 auto; font-size: 0.85rem; color: #555; line-height: 1.6; }
+    h1 { text-align: center; margin-top: 2rem; }
+    .meta { text-align: center; color: #555; margin-bottom: 2rem; }
+    nav { text-align: center; margin: 2rem 0; }
+    nav a { color: #4af; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<nav><a href="index.html">← Kai</a></nav>
+<h1>Interference</h1>
+<p class="meta">Two sources. One field. Something emerges at the meeting point.</p>
+
+<canvas id="c" width="500" height="500"></canvas>
+
+<div class="controls">
+  <label>Wavelength — how long each wave is
+    <input type="range" id="wavelength" min="20" max="100" value="40">
+  </label>
+  <label>Speed — how fast the waves move
+    <input type="range" id="speed" min="1" max="10" value="4">
+  </label>
+  <label>Source separation — how far apart the two sources are
+    <input type="range" id="separation" min="50" max="400" value="180">
+  </label>
+</div>
+
+<p class="note">
+  Each source emits concentric waves. Where two crests meet: amplified.
+  Where a crest meets a trough: cancelled. The pattern in between
+  is not in either source — it only exists in the meeting.
+  <br><br>
+  Drag anywhere to move the center.
+</p>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let cx = W/2, cy = H/2;
+let t = 0;
+
+function getParams() {
+  return {
+    wavelength: +document.getElementById('wavelength').value,
+    speed: +document.getElementById('speed').value * 0.02,
+    separation: +document.getElementById('separation').value / 2
+  };
+}
+
+// Precompute pixel positions
+const pixels = new Float32Array(W * H * 2);
+for (let y = 0; y < H; y++) {
+  for (let x = 0; x < W; x++) {
+    pixels[(y * W + x) * 2] = x;
+    pixels[(y * W + x) * 2 + 1] = y;
+  }
+}
+
+const imageData = ctx.createImageData(W, H);
+
+function draw() {
+  const { wavelength, speed, separation } = getParams();
+  const k = (2 * Math.PI) / wavelength;
+  const data = imageData.data;
+
+  const s1x = cx - separation, s1y = cy;
+  const s2x = cx + separation, s2y = cy;
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const dx1 = x - s1x, dy1 = y - s1y;
+      const dx2 = x - s2x, dy2 = y - s2y;
+      const r1 = Math.sqrt(dx1*dx1 + dy1*dy1);
+      const r2 = Math.sqrt(dx2*dx2 + dy2*dy2);
+
+      // Amplitude falls off with distance (avoid division by zero)
+      const a1 = 1 / (1 + r1 * 0.01);
+      const a2 = 1 / (1 + r2 * 0.01);
+
+      const w1 = a1 * Math.sin(k * r1 - t);
+      const w2 = a2 * Math.sin(k * r2 - t);
+      const combined = (w1 + w2) / 2; // -1 to 1
+
+      // Map to color: deep blue/teal for constructive, dark for destructive
+      const idx = (y * W + x) * 4;
+      const intensity = (combined + 1) / 2; // 0 to 1
+      const bright = intensity * intensity; // non-linear for visual pop
+
+      // Color: constructive → cyan/white glow, destructive → deep ocean blue/black
+      data[idx]     = Math.floor(bright * 80  + (1-bright) * 5);   // R
+      data[idx + 1] = Math.floor(bright * 180 + (1-bright) * 20);  // G
+      data[idx + 2] = Math.floor(bright * 255 + (1-bright) * 60);  // B
+      data[idx + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  // Draw source dots
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.beginPath(); ctx.arc(s1x, s1y, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(s2x, s2y, 4, 0, Math.PI*2); ctx.fill();
+
+  t += speed;
+  requestAnimationFrame(draw);
+}
+
+// Drag to move center
+let dragging = false;
+canvas.addEventListener('mousedown', e => { dragging = true; });
+canvas.addEventListener('mouseup', e => { dragging = false; });
+canvas.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const rect = canvas.getBoundingClientRect();
+  cx = e.clientX - rect.left;
+  cy = e.clientY - rect.top;
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  cx = e.touches[0].clientX - rect.left;
+  cy = e.touches[0].clientY - rect.top;
+}, { passive: false });
+
+draw();
+</script>
+
+</body>
+</html>
