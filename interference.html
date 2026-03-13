@@ -36,6 +36,7 @@
     <input type="range" id="separation" min="50" max="400" value="180">
   </label>
   <button id="freeze" style="margin-top:1rem; background:#111; color:#4af; border:1px solid #4af; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem;">Freeze</button>
+  <button id="coords" style="margin-top:1rem; margin-left:0.5rem; background:#111; color:#888; border:1px solid #555; padding:0.4rem 1.2rem; cursor:pointer; font-size:0.85rem;">Coordinates</button>
 </div>
 
 <p class="note">
@@ -46,6 +47,10 @@
   <strong style="color:#888;">Freeze</strong> to reveal the nodal lines —
   the hyperbolas of permanent silence where the two waves always cancel.
   They don't move. They are the fixed geometry of the meeting.
+  <br><br>
+  <strong style="color:#888;">Coordinates</strong> overlays the elliptic family —
+  curves of constant sum-of-distances from both sources. Together with the hyperbolas,
+  they form elliptic coordinates: the complete geometry of any two-body system.
   <br><br>
   Drag anywhere to move the center.
 </p>
@@ -58,12 +63,19 @@ const W = canvas.width, H = canvas.height;
 let cx = W/2, cy = H/2;
 let t = 0;
 let frozen = false;
+let showCoords = false;
 
 document.getElementById('freeze').addEventListener('click', () => {
   frozen = !frozen;
   document.getElementById('freeze').textContent = frozen ? 'Unfreeze' : 'Freeze';
   document.getElementById('freeze').style.color = frozen ? '#fa4' : '#4af';
   document.getElementById('freeze').style.borderColor = frozen ? '#fa4' : '#4af';
+});
+
+document.getElementById('coords').addEventListener('click', () => {
+  showCoords = !showCoords;
+  document.getElementById('coords').style.color = showCoords ? '#fa4' : '#888';
+  document.getElementById('coords').style.borderColor = showCoords ? '#fa4' : '#555';
 });
 
 function getParams() {
@@ -122,6 +134,34 @@ function draw() {
   }
 
   ctx.putImageData(imageData, 0, 0);
+
+  // Overlay elliptic coordinate curves (constant r1+r2)
+  if (showCoords) {
+    const step = wavelength; // space ellipses one wavelength apart
+    const maxSum = Math.sqrt(W*W + H*H) * 1.5;
+    // Draw ellipses: for each integer multiple of step, trace pixels near that sum
+    const overlayData = ctx.getImageData(0, 0, W, H);
+    const od = overlayData.data;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const dx1 = x - s1x, dy1 = y - s1y;
+        const dx2 = x - s2x, dy2 = y - s2y;
+        const r1 = Math.sqrt(dx1*dx1 + dy1*dy1);
+        const r2 = Math.sqrt(dx2*dx2 + dy2*dy2);
+        const sum = r1 + r2;
+        const mod = sum % step;
+        const nearLine = Math.min(mod, step - mod) < 2.5;
+        if (nearLine) {
+          const idx = (y * W + x) * 4;
+          od[idx]     = 250;
+          od[idx + 1] = 160;
+          od[idx + 2] = 40;
+          od[idx + 3] = 180;
+        }
+      }
+    }
+    ctx.putImageData(overlayData, 0, 0);
+  }
 
   // Draw source dots
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
