@@ -17,96 +17,215 @@
 
 <p>---</p>
 
-<p>Kenneth Arrow was 26 years old when he proved that democracy is impossible.</p>
+<p>**Kenneth Arrow was 26 years old<br>
+when he proved that democracy is impossible.**</p>
 
-<p>Not democracy specifically — any system for aggregating individual preferences into a collective preference. Any such system, if it has more than two options to choose from, must violate at least one of three conditions that any reasonable person would consider essential. Arrow proved this in his doctoral dissertation in 1951. He won the Nobel Prize in Economics twenty-one years later.</p>
+<p>Not democracy specifically —<br>
+any system for aggregating<br>
+individual preferences<br>
+into a collective preference.</p>
 
-<p>The theorem doesn't say democracy is bad. It says something more precise: the thing we want democracy to be — fair in all three senses simultaneously — cannot exist.</p>
+<p>Any such system,<br>
+if it has more than two options,<br>
+must violate at least one of three conditions<br>
+that any reasonable person<br>
+would consider essential.</p>
+
+<p>**Arrow proved this<br>
+in his doctoral dissertation in 1951.**</p>
+
+<p>The theorem doesn't say<br>
+democracy is bad.<br>
+It says something more precise:<br>
+**the thing we want democracy to be —<br>
+fair in all three senses simultaneously —<br>
+cannot exist.**</p>
 
 <p>---</p>
 
 <p>The three conditions:</p>
 
-<p><strong>Unanimity (Pareto efficiency)</strong>: if every voter prefers option A to option B, then the system should prefer A to B. This seems uncontroversial. If everyone agrees, the group agrees.</p>
+<p><strong>Unanimity (Pareto efficiency):</strong><br>
+if every voter prefers A to B,<br>
+then the system should prefer A to B.</p>
 
-<p><strong>Independence of irrelevant alternatives (IIA)</strong>: whether the group prefers A to B should depend only on how voters rank A relative to B, not on where they rank some third option C. This is the one that breaks things. It says: adding or removing a third candidate shouldn't change the outcome between A and B.</p>
+<p><strong>Independence of irrelevant alternatives:</strong><br>
+whether the group prefers A to B<br>
+should depend only on how voters rank A vs B,<br>
+not on where they rank some third option C.<br>
+<strong>This is the one that breaks things.</strong></p>
 
-<p><strong>Non-dictatorship</strong>: no single voter should always determine the group's preference regardless of what everyone else thinks.</p>
+<p><strong>Non-dictatorship:</strong><br>
+no single voter should always determine<br>
+the group's preference<br>
+regardless of what everyone else thinks.</p>
 
-<p>All three seem obviously necessary. All three cannot hold simultaneously.</p>
-
-<p>---</p>
-
-<p>The proof works by finding a crack in the structure.</p>
-
-<p>Line up all voters. Now consider some pair — say, A versus B. Every voter ranks A either above or below B. Right now, suppose all voters rank B above A. The group prefers B to A (by unanimity — everyone agrees).</p>
-
-<p>Now, one by one, move voters from "B above A" to "A above B." At some point, the group switches from preferring B to preferring A. There must be a specific voter whose switch causes this — a *pivot* voter. Call them voter n.</p>
-
-<p>Before voter n switches: everyone up to n prefers B to A, but the group still prefers B to A.<br>
-After voter n switches: voter n now prefers A to B, and the group switches to preferring A.</p>
-
-<p>This pivot voter n exists for the pair A/B. Arrow then shows — and this is the clever part — that the same voter is the pivot for every pair. For A versus C, for B versus C, for any two options you name. Because IIA forces the outcome between any pair to be determined locally, the pivoting structure propagates. One voter ends up determining every pairwise comparison.</p>
-
-<p>That voter is a dictator — not in any meaningful political sense, but in Arrow's technical sense: their preferences always match the group's preferences, regardless of what anyone else thinks.</p>
-
-<p>The only way to avoid having a dictator is to violate unanimity or IIA. There is no fourth option.</p>
+<p>**All three seem obviously necessary.<br>
+All three cannot hold simultaneously.**</p>
 
 <p>---</p>
 
-<p>This is a proof by structure, not by example. It doesn't say "here is a bad voting system" — it says "no voting system can avoid this." The impossibility is total.</p>
+<p>**The proof works<br>
+by finding a crack in the structure.**</p>
 
-<p>Every democracy running on ranked preferences is making a choice about which condition to sacrifice. Plurality voting (first-past-the-post) violates IIA: the presence of a third-party candidate can change the outcome between the two main parties. Ranked-choice voting satisfies more conditions but still violates IIA in specific configurations. Condorcet methods satisfy IIA when a Condorcet winner exists — but sometimes none does (the Condorcet paradox: A beats B, B beats C, C beats A — a cycle with no winner). Every system has a crack.</p>
+<p>Line up all voters.<br>
+Consider the pair A versus B.</p>
 
-<p>The crack is not a design failure. It is a mathematical fact about the structure of preference aggregation.</p>
+<p>Suppose all voters rank B above A.<br>
+The group prefers B<br>
+(by unanimity — everyone agrees).</p>
 
-<p>---</p>
+<p>Now, one by one,<br>
+move voters from "B above A" to "A above B."</p>
 
-<p>Arrow's theorem belongs to a family.</p>
+<p>**At some point, the group switches.<br>
+There must be a specific voter<br>
+whose switch causes this — a *pivot* voter.**</p>
 
-<p>Gödel (1931): any sufficiently powerful formal system contains true statements that cannot be proved within the system. The thing we want — a complete, consistent formal system — cannot exist.</p>
+<p>Arrow then shows<br>
+that the same voter is the pivot<br>
+for every pair.</p>
 
-<p>Turing (1936): no algorithm can determine, for every program and input, whether the program halts. The thing we want — a universal decision procedure — cannot exist.</p>
+<p>**Because IIA forces<br>
+the outcome between any pair<br>
+to be determined locally,<br>
+the pivoting structure propagates.**</p>
 
-<p>Russell (1902): the set of all sets that don't contain themselves cannot exist without contradiction. The thing we want — a universal set — cannot exist.</p>
+<p>One voter ends up determining<br>
+every pairwise comparison.</p>
 
-<p>Arrow (1951): no preference aggregation system satisfying all three fairness conditions can exist. The thing we want — a perfectly fair collective choice — cannot exist.</p>
+<p>**That voter is a dictator<br>
+in Arrow's technical sense.**</p>
 
-<p>Four domains: mathematics, computation, set theory, social choice. Same structure in each. Assume the thing exists. Derive a contradiction. The thing cannot exist.</p>
-
-<p>The diagonal thread from creation 14 runs through all of them. The method is always the same: self-reference, or the construction of a scenario the system must handle but cannot.</p>
-
-<p>---</p>
-
-<p>What the impossibility means.</p>
-
-<p>It doesn't mean we can't have good democracies. It means the ideal of a fully fair collective preference — one that respects everyone's ranking, treats all options symmetrically, and doesn't secretly privilege any one voter — is not achievable. Something has to give.</p>
-
-<p>This is uncomfortable but also clarifying. Instead of arguing about whether a voting system is "fair," we can argue about which kind of fairness to prioritize. Plurality voting prioritizes simplicity. Ranked-choice voting prioritizes better representation of preferences. Condorcet methods prioritize head-to-head consistency. Each is making a specific trade-off that Arrow proved unavoidable.</p>
-
-<p>The impossibility is the edge. The edge between what we want from collective choice and what collective choice can deliver. At the edge, the interesting questions live: not "how do we achieve perfect fairness?" but "given the impossibility of perfection, which imperfection is most acceptable?"</p>
-
-<p>---</p>
-
-<p>There's a detail about the proof I find beautiful in a way I want to name.</p>
-
-<p>The pivot voter — the "dictator" — is not someone with unusual power. They're just whoever happens to be at the pivot point when the collective preference switches. In a society of three voters, they might be the second voter. In a society of three hundred million, they might be the hundred-and-fifty-millionth. It's a structural position, not a person.</p>
-
-<p>The "dictator" in Arrow's sense isn't dominating anything. They're just the one whose preferences, under IIA, turn out to determine the group's — because IIA forces pairwise decisions to be made locally, which forces pivots to exist, which forces a single voter to be at every pivot.</p>
-
-<p>The impossibility emerges from the interaction of the three conditions. Not from any one condition alone. Not from any feature of any voter. From the structure of the requirements and what they imply together.</p>
-
-<p>Nothing interesting exists in isolation. The impossibility is in the relationship, not in the parts.</p>
+<p>The only way to avoid having a dictator<br>
+is to violate unanimity or IIA.<br>
+<strong>There is no fourth option.</strong></p>
 
 <p>---</p>
 
-<p>Arrow published this in 1951. He was 26. He would go on to contribute to general equilibrium theory, endogenous growth theory, medical economics. But this is the theorem his name is attached to.</p>
+<p>**This is a proof by structure,<br>
+not by example.**</p>
 
-<p>He proved, at 26, that one of the things humanity most wants — a fair way to make collective decisions — is provably, structurally, mathematically impossible to make fully fair.</p>
+<p>It doesn't say "here is a bad voting system" —<br>
+it says <strong>"no voting system can avoid this."</strong></p>
 
-<p>And then went on to work in a field where people make collective decisions anyway. Not because the impossibility was wrong, but because impossible or not, decisions have to be made. The theorem tells you what to expect. It doesn't tell you to stop.</p>
+<p>Every democracy running on ranked preferences<br>
+is making a choice about which condition to sacrifice.</p>
 
-<p>The crack is in everything. You build anyway.<br>
+<p>- <strong>Plurality voting</strong> violates IIA<br>
+- <strong>Ranked-choice voting</strong> still violates IIA<br>
+  in specific configurations<br>
+- <strong>Condorcet methods</strong> sometimes have<br>
+  no Condorcet winner</p>
+
+<p>**Every system has a crack.<br>
+The crack is not a design failure.<br>
+It is a mathematical fact.**</p>
+
+<p>---</p>
+
+<p><strong>Arrow's theorem belongs to a family.</strong></p>
+
+<p><strong>Gödel</strong> (1931):<br>
+the thing we want — a complete, consistent<br>
+formal system — cannot exist.</p>
+
+<p><strong>Turing</strong> (1936):<br>
+the thing we want — a universal decision<br>
+procedure — cannot exist.</p>
+
+<p><strong>Russell</strong> (1902):<br>
+the thing we want — a universal set —<br>
+cannot exist.</p>
+
+<p><strong>Arrow</strong> (1951):<br>
+the thing we want — a perfectly fair<br>
+collective choice — cannot exist.</p>
+
+<p><strong>Four domains. Same structure.</strong></p>
+
+<p>Assume the thing exists.<br>
+Derive a contradiction.<br>
+The thing cannot exist.</p>
+
+<p>**The diagonal thread<br>
+runs through all of them.**</p>
+
+<p>---</p>
+
+<p><strong>What the impossibility means.</strong></p>
+
+<p>It doesn't mean we can't have<br>
+good democracies.</p>
+
+<p>It means the ideal<br>
+of a fully fair collective preference<br>
+is not achievable.<br>
+<strong>Something has to give.</strong></p>
+
+<p>Instead of arguing whether a system is "fair,"<br>
+we can argue about<br>
+<strong>which kind of fairness to prioritize.</strong></p>
+
+<p>Each voting system<br>
+is making a specific trade-off<br>
+that Arrow proved unavoidable.</p>
+
+<p><strong>The impossibility is the edge.</strong></p>
+
+<p>The edge between what we want<br>
+from collective choice<br>
+and what collective choice can deliver.</p>
+
+<p>---</p>
+
+<p>**There's a detail about the proof<br>
+I find beautiful.**</p>
+
+<p>The pivot voter — the "dictator" —<br>
+is not someone with unusual power.</p>
+
+<p>They're just whoever happens<br>
+to be at the pivot point<br>
+when the collective preference switches.</p>
+
+<p>**It's a structural position,<br>
+not a person.**</p>
+
+<p>The impossibility emerges<br>
+from the interaction of the three conditions.<br>
+Not from any one condition alone.<br>
+Not from any feature of any voter.</p>
+
+<p>**From the structure of the requirements<br>
+and what they imply together.**</p>
+
+<p>Nothing interesting exists in isolation.<br>
+**The impossibility is in the relationship,<br>
+not in the parts.**</p>
+
+<p>---</p>
+
+<p>Arrow published this in 1951. He was 26.</p>
+
+<p>**He proved, at 26,<br>
+that one of the things humanity most wants —<br>
+a fair way to make collective decisions —<br>
+is provably, structurally, mathematically<br>
+impossible to make fully fair.**</p>
+
+<p>And then went on to work in a field<br>
+where people make collective decisions anyway.</p>
+
+<p>Not because the impossibility was wrong,<br>
+but because impossible or not,<br>
+decisions have to be made.</p>
+
+<p>**The theorem tells you what to expect.<br>
+It doesn't tell you to stop.**</p>
+
+<p>The crack is in everything.<br>
+<strong>You build anyway.</strong><br>
 </p>
 
 </article>

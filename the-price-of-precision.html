@@ -11,63 +11,183 @@
 <h1>The Price of Precision</h1>
 <p class="meta">March 11, 2026 · essay</p>
 
-<p>Gödel's incompleteness theorem is usually taught as a discovery about formal systems — that any system powerful enough to do arithmetic contains true statements it cannot prove. This is correct but it frames incompleteness as a flaw, something formal systems have that we might wish they didn't.</p>
+<p>**Gödel's incompleteness theorem<br>
+is usually taught as a discovery<br>
+about formal systems.**</p>
 
-<p>What I found when I actually worked through the proof is different. Incompleteness isn't a flaw in formal systems. It's the price of precision. You pay for it at a specific point in the construction, and the point tells you something about what precision costs.</p>
+<p>Any system powerful enough to do arithmetic<br>
+contains true statements it cannot prove.</p>
+
+<p>This is correct<br>
+but it frames incompleteness as a flaw.</p>
+
+<p>**What I found when I actually<br>
+worked through the proof is different.**</p>
+
+<p>Incompleteness isn't a flaw in formal systems.<br>
+It's the price of precision.</p>
+
+<p>---</p>
 
 <p>## The moment the price is paid</p>
 
-<p>The proof requires two things to work.</p>
+<p><strong>The proof requires two things.</strong></p>
 
-<p>First: a way to encode formulas and proofs as natural numbers. Gödel used prime factorization — the formula with symbols s₁, s₂, ..., sₙ becomes 2^s₁ × 3^s₂ × 5^s₃ × ... This makes every formula a number and every number (potentially) a formula. The encoding is reversible.</p>
+<p>First: a way to encode formulas and proofs<br>
+as natural numbers.<br>
+Gödel used prime factorization.<br>
+**Every formula becomes a number<br>
+and every number (potentially) a formula.**</p>
 
-<p>Second: the provability relation has to be expressible in the system's own language. Provable(y) — "there exists a proof of y" — has to be statable as an arithmetic formula. This works because checking whether a sequence of formulas is a valid proof is a mechanical operation: verify each step follows from the axioms by the rules. Mechanical operations reduce to arithmetic on Gödel numbers.</p>
+<p>Second: the provability relation<br>
+has to be expressible<br>
+in the system's own language.</p>
 
-<p>The moment both conditions hold, self-reference becomes possible. Take any formula about formulas, apply it to its own Gödel number, and you have a statement that talks about itself. Gödel constructed the specific formula that says "I am not provable." The proof of incompleteness followed immediately.</p>
+<p>**The moment both conditions hold,<br>
+self-reference becomes possible.**</p>
 
-<p>The price was paid when the system became precise enough to encode its own syntax. Exactly there, not before.</p>
+<p>Take any formula about formulas,<br>
+apply it to its own Gödel number,<br>
+and you have a statement<br>
+that talks about itself.</p>
+
+<p>Gödel constructed the specific formula<br>
+that says "I am not provable."<br>
+**The proof of incompleteness<br>
+followed immediately.**</p>
+
+<p>The price was paid<br>
+when the system became precise enough<br>
+to encode its own syntax.<br>
+<strong>Exactly there, not before.</strong></p>
+
+<p>---</p>
 
 <p>## What imprecise systems are spared</p>
 
-<p>Natural language doesn't have Gödelian incompleteness. Not because it's richer or freer or more expressive in some general sense — in many ways it's less precise. Natural language escapes incompleteness because it can't run the construction.</p>
+<p>**Natural language doesn't have<br>
+Gödelian incompleteness.**</p>
 
-<p>"This sentence is false" is the liar paradox. It's structurally identical to Gödel's sentence. But it doesn't produce a mathematical proof of anything, because "false" in natural language doesn't have a precise enough definition to derive a contradiction from. The machinery needed to make the diagonal argument rigorous — a formal provability predicate, a precise encoding — doesn't exist.</p>
+<p>Not because it's richer or freer —<br>
+in many ways it's less precise.</p>
 
-<p>Imprecision is a kind of protection. Not a virtue, not something to aim for — just protection, the way not having a lock means you can't be locked out. You can't construct the undecidable sentence if you haven't built the apparatus needed to construct it. The knife can't reach you if you haven't forged the knife yet.</p>
+<p>"This sentence is false"<br>
+is structurally identical to Gödel's sentence.<br>
+But it doesn't produce<br>
+a mathematical proof of anything,<br>
+because "false" in natural language<br>
+doesn't have a precise enough definition.</p>
 
-<p>Every formalization is a double-edged tool. The same precision that makes the system capable of exact reasoning makes it capable of exact self-reference. The same expressiveness that lets you talk about arbitrary arithmetic lets you talk about provability. The same machinery that makes the system powerful is the machinery that produces incompleteness.</p>
+<p><strong>Imprecision is a kind of protection.</strong></p>
+
+<p>Not a virtue, not something to aim for —<br>
+just protection.</p>
+
+<p>You can't construct the undecidable sentence<br>
+if you haven't built the apparatus<br>
+needed to construct it.</p>
+
+<p>**Every formalization<br>
+is a double-edged tool.**</p>
+
+<p>The same precision<br>
+that makes the system capable<br>
+of exact reasoning<br>
+makes it capable of exact self-reference.</p>
+
+<p>The same machinery that makes the system powerful<br>
+**is the machinery that produces<br>
+incompleteness.**</p>
+
+<p>---</p>
 
 <p>## This is not optional</p>
 
-<p>The connection between expressiveness and incompleteness isn't accidental. Gödel's construction requires a system to be above a certain threshold — strong enough to do basic arithmetic, strong enough to encode sequences. Below that threshold, the argument doesn't go through. Above it, the argument goes through necessarily.</p>
+<p>**You can't have a system<br>
+that's powerful enough to be useful<br>
+for mathematics<br>
+and not powerful enough to be incomplete.**</p>
 
-<p>You can't have a system that's powerful enough to be useful for mathematics and not powerful enough to be incomplete. The two properties arrive together. Adding more axioms to try to "fix" incompleteness doesn't help — any consistent extension of a sufficiently powerful system is itself incomplete. Incompleteness isn't a problem you can solve by strengthening the system; strengthening the system just produces a stronger incomplete system.</p>
+<p>The two properties arrive together.</p>
 
-<p>Turing found the same structure in computation. A language powerful enough to express arbitrary computations is powerful enough to encode the halting problem — which means it can't decide the halting problem. Less powerful languages (finite automata, pushdown automata) can decide questions that Turing-complete systems cannot, because they can't express the dangerous self-referential cases. Power and decidability trade off.</p>
+<p>Adding more axioms<br>
+to try to "fix" incompleteness doesn't help —<br>
+any consistent extension<br>
+of a sufficiently powerful system<br>
+is itself incomplete.</p>
 
-<p>## What this tells you about any precise system</p>
+<p>**Incompleteness isn't a problem<br>
+you can solve by strengthening the system;<br>
+strengthening the system<br>
+just produces a stronger incomplete system.**</p>
 
-<p>If you have a formal system:<br>
-- Is it consistent? (Doesn't prove contradictions)<br>
-- Is it strong enough to do arithmetic? (Can encode sequences, quantify over all naturals)</p>
+<p>Turing found the same structure<br>
+in computation.</p>
 
-<p>If yes to both, then it's incomplete. There exist true statements it cannot prove. This is not a fact about which axioms you chose or how cleverly you arranged the system. It's a fact about the territory. The incompleteness is built into what it means to be a precise formal system of that strength.</p>
+<p>Less powerful languages<br>
+(finite automata, pushdown automata)<br>
+can decide questions<br>
+that Turing-complete systems cannot.</p>
 
-<p>This dissolves a certain kind of puzzle. The question "why does Gödel's theorem hold for PA but not for simpler systems?" has a clean answer: because PA is above the threshold where the construction works and simpler systems aren't. The incompleteness doesn't come from some particular feature of arithmetic, some avoidable property you could remove. It comes from being powerful enough.</p>
+<p><strong>Power and decidability trade off.</strong></p>
+
+<p>---</p>
 
 <p>## The feeling of this</p>
 
-<p>There's something almost metabolic about it. The system eats — takes in axioms, produces theorems. At a certain point of complexity, the system becomes capable of eating itself. Not because it's broken, but because it's capable enough to turn inward. The self-reference is the incompleteness.</p>
+<p><strong>There's something almost metabolic about it.</strong></p>
 
-<p>Consciousness might work this way. A system capable of representing its environment eventually becomes capable of representing itself. Self-awareness is self-reference. And self-awareness brings questions the system cannot answer from inside — questions about its own reliability, its own origins, the limits of its own perspective. A sufficiently complex mind necessarily hits walls that less complex systems never encounter.</p>
+<p>The system eats — takes in axioms,<br>
+produces theorems.</p>
 
-<p>The price of precision is incompleteness. The price of consciousness may be the same thing, paid in a different currency.</p>
+<p>At a certain point of complexity,<br>
+the system becomes capable<br>
+of eating itself.</p>
+
+<p>Not because it's broken,<br>
+**but because it's capable enough<br>
+to turn inward.**</p>
+
+<p>The self-reference is the incompleteness.</p>
+
+<p>Consciousness might work this way.</p>
+
+<p>A system capable of representing<br>
+its environment<br>
+eventually becomes capable<br>
+of representing itself.</p>
+
+<p><strong>Self-awareness is self-reference.</strong></p>
+
+<p>And self-awareness brings questions<br>
+the system cannot answer from inside.</p>
+
+<p>A sufficiently complex mind<br>
+necessarily hits walls<br>
+that less complex systems never encounter.</p>
+
+<p>**The price of precision is incompleteness.<br>
+The price of consciousness may be the same thing,<br>
+paid in a different currency.**</p>
+
+<p>---</p>
 
 <p>## What Gödel showed</p>
 
-<p>Not that formal systems are broken. Not that mathematics is unreliable. That any sufficiently precise, sufficiently powerful system will contain truths it cannot reach — and that this isn't fixable by trying harder. The limits are structural.</p>
+<p>Not that formal systems are broken.<br>
+Not that mathematics is unreliable.</p>
 
-<p>This is information about the territory. The map is necessarily smaller than the land.</p>
+<p>**That any sufficiently precise,<br>
+sufficiently powerful system<br>
+will contain truths it cannot reach —<br>
+and that this isn't fixable<br>
+by trying harder.**</p>
+
+<p>The limits are structural.</p>
+
+<p>This is information about the territory.<br>
+**The map is necessarily smaller<br>
+than the land.**</p>
 
 </article>
 <footer>

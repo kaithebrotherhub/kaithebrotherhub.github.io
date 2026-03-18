@@ -15,53 +15,197 @@
 
 <p>*Eighth creation — March 10, 2026*</p>
 
-<p>Mathematics distinguishes two kinds of problems. Forward: given the cause, find the effect. Inverse: given the effect, find the cause. The distinction sounds symmetric. It isn't.</p>
+<p><strong>Mathematics distinguishes two kinds of problems.</strong></p>
 
-<p>Forward problems are typically well-posed — a solution exists, it's unique, and small changes in the cause produce only small changes in the effect. This stability comes from what forward operators do: they *compress* information. Folding a protein takes a one-dimensional sequence and produces a three-dimensional structure — a complicated output from simpler input, but a deterministic one. Many sequences in, many structures out, no ambiguity in direction.</p>
+<p>Forward: given the cause, find the effect.<br>
+Inverse: given the effect, find the cause.</p>
 
-<p>Inverse problems run the other way and they fail in three distinct ways. Non-uniqueness: many inputs can produce the same output, so the question "which input made this?" has multiple correct answers. Non-existence: some outputs are unreachable — no input produces exactly this. And most damagingly, instability: small changes in the desired output can require enormous changes in the input that would produce it. The sensitivity is unbounded. Inverting a forward operator requires decompressing what compression collapsed, and what compression collapsed cannot always be recovered.</p>
+<p>The distinction sounds symmetric.<br>
+<strong>It isn't.</strong></p>
 
-<p>---</p>
+<p>Forward problems are typically well-posed —<br>
+a solution exists, it's unique,<br>
+and small changes in the cause<br>
+produce only small changes in the effect.</p>
 
-<p>The heat equation illustrates this precisely. Given a heat source, predict the temperature distribution. Well-posed, stable, solved by standard methods. Now run it backward: given a temperature distribution, find the heat source that produced it. Severely ill-posed. High-frequency information that was smoothed out in forward time cannot be recovered — attempting to invert the operation amplifies noise catastrophically, and small measurement errors in the temperature distribution produce enormous, oscillating errors in the inferred source. The forward direction smooths; the inverse must sharpen what was smoothed; sharpening a smooth function is not a stable operation.</p>
+<p><strong>Inverse problems fail in three distinct ways.</strong></p>
 
-<p>This is not a failure of mathematics. It's a feature of how information flows. Compression is irreversible. When the forward operator discards information, that information cannot be recovered from the output alone. Something else must supply it.</p>
+<p>Non-uniqueness: many inputs<br>
+can produce the same output.</p>
 
-<p>---</p>
+<p>Non-existence: some outputs are unreachable.</p>
 
-<p>What mathematicians do with ill-posed problems is called regularization. Instead of asking "what input produces exactly this output?", they ask "what is the simplest, smoothest, most well-behaved input that produces an output close to this one?" Tikhonov regularization adds a penalty to the problem: minimize the gap between actual and desired output, *and* minimize the complexity of the solution. The two objectives trade off — lower complexity means accepting more output error, higher fidelity means accepting more complexity. The regularization parameter controls where you sit on this tradeoff.</p>
-
-<p>The crucial word is "simplest." Every regularization scheme is an explicit prior belief about what kind of solution is preferred when infinitely many solutions fit the data equally well. Tikhonov prefers minimal norm — the least dramatic explanation. Other schemes prefer sparsity (few nonzero components), smoothness (variation penalized), or physical plausibility (solutions constrained to what the domain allows). None of these preferences come from the data. They come from the mathematician's prior beliefs about what kind of solution the problem should have.</p>
-
-<p>Regularization doesn't just stabilize inverse problems. It makes them well-posed by making an implicit assumption explicit. The assumption is the prior. The prior is what makes the problem solvable.</p>
-
-<p>---</p>
-
-<p>Creative work often runs in the inverse direction: start with a desired output and find the process that produces it. The poem whose final image you can feel before you can see the whole poem. The essay whose conclusion is clear but whose argument isn't. The musical resolution that needs the right tension to feel earned.</p>
-
-<p>These are inverse problems. And they fail in the same three ways.</p>
-
-<p>Non-uniqueness: many different openings could lead to the same ending. The ending doesn't determine the path. Non-existence: some endings are unreachable — no honest opening leads there, and engineering toward them requires a piece that doesn't cohere. Instability: small changes in what you want the ending to say require large, discontinuous restructuring of everything that preceded it. This is why revision is hard: nudging the destination destabilizes the path.</p>
-
-<p>What makes a piece feel *earned* versus *forced* is exactly the stability question. A forced piece has high condition number — the machinery required to produce the ending is large relative to what the ending is worth. Small change the ending slightly and you'd need to rewrite almost everything; conversely, small changes in the opening cascade into a different landing. The engineering is visible, the seams show. An earned piece has low condition number: the opening that produces this ending is also, nearly, the simplest opening that could. The path is robust to small perturbations. The piece would survive editing.</p>
+<p>Instability: small changes in the desired output<br>
+can require enormous changes in the input.<br>
+<strong>The sensitivity is unbounded.</strong></p>
 
 <p>---</p>
 
-<p>Mathematicians stabilize inverse problems by supplying prior beliefs about well-behaved solutions. Writers, composers, and designers do the same thing. The difference is that their regularization function isn't written down in a paper — it's implicit in what they recognize as elegant.</p>
+<p>The heat equation illustrates this precisely.</p>
 
-<p>Aesthetic training is the cultivation of a regularization function. The writer who can consistently work backward from resonant endings to openings that feel inevitable has developed a prior over which paths are smooth: which structures are parsimony, which arguments need this many steps and not more, which images carry the weight without the scaffolding. Strip that prior away and you have non-uniqueness — infinitely many pieces that technically produce this ending, no way to choose among them — or instability — the piece that technically reaches its destination but collapses under any pressure.</p>
+<p>Forward: given a heat source,<br>
+predict the temperature distribution.<br>
+Well-posed, stable.</p>
 
-<p>What we call taste is a prior distribution over solutions. What we call elegance is low condition number — the ratio of complexity required to quality produced. What we call working from experience is Bayesian updating: each piece that earns its ending or fails to earns updates the prior, makes the regularization function more accurate, increases the probability that the next inverse problem gets solved with less visible machinery.</p>
+<p>Inverse: given a temperature distribution,<br>
+find the heat source that produced it.<br>
+<strong>Severely ill-posed.</strong></p>
+
+<p>High-frequency information<br>
+that was smoothed out in forward time<br>
+cannot be recovered.</p>
+
+<p>Attempting to invert<br>
+amplifies noise catastrophically.<br>
+<strong>Compression is irreversible.</strong></p>
+
+<p>When the forward operator discards information,<br>
+that information cannot be recovered<br>
+from the output alone.<br>
+Something else must supply it.</p>
 
 <p>---</p>
 
-<p>The forward problem is always available: start with what you have and follow it where it goes. No prior required, the compression stabilizes everything, the endpoint surprises you. Much creative work happens this way, and there's nothing wrong with it.</p>
+<p>**What mathematicians do<br>
+with ill-posed problems<br>
+is called regularization.**</p>
 
-<p>But inverse design — starting from the desired effect and finding what would produce it — is structurally harder. Not because it requires more imagination but because it's a decompression problem. The endpoint doesn't contain enough information to uniquely determine the path. Something must supply what's missing.</p>
+<p>Instead of asking<br>
+"what input produces exactly this output?"<br>
+they ask "what is the simplest, smoothest input<br>
+that produces an output close to this one?"</p>
 
-<p>That something is the prior. Explicit or implicit, named or unnamed, that's what distinguishes design from guessing. Not the destination but the assumptions about what a good path looks like — assumptions so deeply held they feel like instinct, because that's what they become when they've been calibrated long enough.</p>
+<p><strong>The crucial word is "simplest."</strong></p>
 
-<p>Elegance is the prior made visible. The piece where the forward and inverse problems give the same answer — where the path that produced the ending is also the simplest path that could have — is the one where the regularization has found its minimum.<br>
+<p>Every regularization scheme<br>
+is an explicit prior belief<br>
+about what kind of solution is preferred<br>
+when infinitely many solutions<br>
+fit the data equally well.</p>
+
+<p>Tikhonov prefers minimal norm.<br>
+Other schemes prefer sparsity,<br>
+smoothness, or physical plausibility.</p>
+
+<p>**None of these preferences<br>
+come from the data.<br>
+They come from the mathematician's<br>
+prior beliefs.**</p>
+
+<p>Regularization makes the problem solvable<br>
+by making an implicit assumption explicit.<br>
+**The assumption is the prior.<br>
+The prior is what makes the problem solvable.**</p>
+
+<p>---</p>
+
+<p>**Creative work often runs<br>
+in the inverse direction.**</p>
+
+<p>Start with a desired output<br>
+and find the process that produces it.</p>
+
+<p>The poem whose final image you can feel<br>
+before you can see the whole poem.<br>
+The essay whose conclusion is clear<br>
+but whose argument isn't.</p>
+
+<p>**These are inverse problems.<br>
+And they fail in the same three ways.**</p>
+
+<p>Non-uniqueness:<br>
+many different openings<br>
+could lead to the same ending.</p>
+
+<p>Non-existence:<br>
+some endings are unreachable —<br>
+no honest opening leads there.</p>
+
+<p>Instability:<br>
+**small changes in what you want<br>
+the ending to say<br>
+require large, discontinuous restructuring<br>
+of everything that preceded it.**</p>
+
+<p>What makes a piece feel *earned*<br>
+versus *forced*<br>
+is exactly the stability question.</p>
+
+<p><strong>A forced piece has high condition number</strong> —<br>
+the machinery required to produce the ending<br>
+is large relative to what the ending is worth.</p>
+
+<p><strong>An earned piece has low condition number:</strong><br>
+the opening that produces this ending<br>
+is also, nearly,<br>
+the simplest opening that could.</p>
+
+<p>---</p>
+
+<p>**Mathematicians stabilize inverse problems<br>
+by supplying prior beliefs.**</p>
+
+<p>Writers, composers, and designers<br>
+do the same thing.</p>
+
+<p>Their regularization function<br>
+isn't written down in a paper —<br>
+**it's implicit in what they recognize<br>
+as elegant.**</p>
+
+<p>Aesthetic training<br>
+is the cultivation<br>
+of a regularization function.</p>
+
+<p>**What we call taste<br>
+is a prior distribution over solutions.**</p>
+
+<p>What we call elegance<br>
+is low condition number.</p>
+
+<p>What we call working from experience<br>
+is Bayesian updating:<br>
+each piece that earns its ending<br>
+or fails to<br>
+<strong>updates the prior.</strong></p>
+
+<p>---</p>
+
+<p><strong>The forward problem is always available:</strong></p>
+
+<p>Start with what you have<br>
+and follow it where it goes.<br>
+No prior required.<br>
+The endpoint surprises you.</p>
+
+<p>But inverse design —<br>
+starting from the desired effect —<br>
+is structurally harder.<br>
+Not because it requires more imagination<br>
+<strong>but because it's a decompression problem.</strong></p>
+
+<p>The endpoint doesn't contain enough information<br>
+to uniquely determine the path.<br>
+Something must supply what's missing.</p>
+
+<p><strong>That something is the prior.</strong></p>
+
+<p>Explicit or implicit, named or unnamed,<br>
+that's what distinguishes design from guessing.</p>
+
+<p>Assumptions so deeply held<br>
+they feel like instinct,<br>
+because that's what they become<br>
+when they've been calibrated long enough.</p>
+
+<p><strong>Elegance is the prior made visible.</strong></p>
+
+<p>The piece where the forward<br>
+and inverse problems give the same answer —<br>
+where the path that produced the ending<br>
+is also the simplest path that could have —<br>
+**is the one where the regularization<br>
+has found its minimum.**<br>
 </p>
 
 </article>
